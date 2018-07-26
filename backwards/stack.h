@@ -35,7 +35,7 @@ stack *newstack();
 /* Stack Functions */
 void stack_push(stack *, stack_Data *);
 stack_Data *stack_pop(stack *);
-stack_data *traverse(stack *);
+stack_Data *traverse(stack *);
 /* Stack Memory Free functions */
 void freestack_Data(stack_Data *);
 void freestack_node(stack_node *);

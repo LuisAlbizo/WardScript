@@ -11,7 +11,7 @@ dict_node *newdict_node(char *key, dict_Data *d, dict_node *parent, dict_node *l
 	if (!n) {
 		return NULL;
 	}
-	strncpy(n->key, key, (strlen(key) > MAX_KEY ? MAX_KEY : strlen(key)));
+	strncpy(n->key, key, (strlen(key) > MAX_DICT_KEY ? MAX_DICT_KEY : strlen(key)));
 	n->data = d;
 	n->parent = parent;
 	n->l = l;

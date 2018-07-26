@@ -4,11 +4,12 @@
 #ifndef ast_h
 #define ast_h
 
+#include "dict.h"
+#include "scope.h"
+#include "stack.h"
 #include <stdlib.h>
-#include "ast.h"
 
 	/* AST Nodetypes */
-
 #define AST_BLOCK	1
 #define AST_ASSIGNMENT	2
 #define AST_BOP		3
@@ -17,61 +18,126 @@
 #define AST_METHODCALL	6
 #define AST_IF		7
 #define AST_FOREVER	8
-#define AST_COMMENT	9
-#define AST_ARGS	10
-#define AST_ATTR	11
-#define AST_INDEX	12
+#define AST_EXIT	9
+#define AST_MEMBER	11
+#define AST_NAME	12
 #define AST_NAMES	13
-#define AST_EXPRESSION	14
-
 	/* Datatypes */
+#define AST_OBJECT	20
 
-#define AST_NUMBER	20
-#define AST_STRING	21
-#define AST_LIST	22
-#define AST_DICT	23
-#define AST_FUNCTION	24
-
-/*
-** AST struct definition for each type of statement
+/* AST struct definition for each type of statement
 */
 
 struct st {
-	unsigned int nodetype;
+	unsigned int type;
+};
+
+struct block {
+	unsigned int type; // AST_BLOCK
+	stack *block; // Stack of statements
 };
 
 struct assign {
-	char *name;
-	struct expression *value;
-}:
+	char name[MAX_DICT_KEY];
+	struct st *value;
+};
 
 struct assignment {
-	unsigned int nodetype;
-
+	unsigned int type; // AST_ASSIGNMENT
+	stack *assigns; // Stack of struct assign
 };
 
 struct bop {
-	unsigned int nodetype;
+	unsigned int type; // AST_BOP
 	char op;
-	struct expression *left;
-	struct expression *right;
+	struct st *left;
+	struct st *right;
 };
 
 struct uop {
-	unsigned int nodetype;
+	unsigned int type; // AST_UOP
 	char op;
-	struct expression *right;
+	struct st *right;
 };
 
-typedef struct st st_st;
-typedef struct assignment st_assignment;
-typedef struct bop st_bop;
-typedef struct uop st_uop;
+struct name {
+	unsigned int type; // AST_NAME
+	char name[MAX_DICT_KEY]; // From dict.h
+};
 
+struct call {
+	unsigned int type; // AST_CALL
+	struct st *callable;
+	stack *args; // Stack of stats
+};
 
+struct member {
+	unsigned int type; // AST_MEMBER
+	struct st *object;
+	char name[MAX_DICT_KEY];
+};
 
+struct methodcall {
+	unsigned int type; // AST_METHODCALL
+	struct st *object; // Object to pass as a self parameter (node)
+	char method[MAX_DICT_KEY]; // Member name of object callable
+	stack *args; // stack of statements
+};
 
+struct argnames {
+	unsigned int type; // AST_NAMES
+	stack *names;
+};
 
+struct if_ {
+	unsigned int type; // AST_IF
+	struct st *condition;
+	struct block *block_if;
+	struct block *block_else;
+};
 
+struct forever {
+	unsigned int type; // AST_FOREVER
+	struct block *block;
+};
+
+typedef struct assign		assign;
+typedef struct st		st_st;
+typedef struct block		st_block;
+typedef struct assignment	st_assignment;
+typedef struct bop		st_bop;
+typedef struct uop		st_uop;
+typedef struct name		st_name;
+typedef struct call		st_call;
+typedef struct member		st_member;
+typedef struct methodcall	st_methodcall;
+typedef struct argnames		st_argnames;
+typedef struct if_		st_if;
+typedef struct forever		st_forever;
+
+/* AST Creation */
+
+void *astalloc(size_t); /* Check if there is disponible memory for allocate a new ast
+			   if there is memory left then return the block of memory (void *)
+			   otherwise prints an error and finish the program with exit code 1
+			   */
+st_st *new_st();
+st_st *new_block(stack *);
+assign *new_assign(char *, st_st *);
+st_st *new_assignment(stack *);
+st_st *new_bop(char, st_st *, st_st *);
+st_st *new_uop(char, st_st *);
+st_st *new_name(char *);
+st_st *new_call(st_st *, stack *);
+st_st *new_member(st_st *, char *);
+st_st *new_methodcall(st_st *, char *, stack *);
+st_st *new_argnames(stack *);
+st_st *new_if(st_st *, st_block *, st_block *);
+st_st *new_forever(st_block *);
+
+/* AST Deletion */
+
+void free_assign(assign *);
+void free_st(st_st *);
 
 #endif

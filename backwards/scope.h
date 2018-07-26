@@ -5,7 +5,11 @@
 #define scope_h
 #include "dict.h"
 
-/* The scope is the enviroment where a variable exists
+/* The scope is a enviroment where a name has one object associated.
+ *
+ * There can be multiple objects in multiple enviroments with the same name,
+ * only a name is updated when it is modified in the same enviroment otherwise is
+ * declared.
  */
 
 struct scope {
@@ -16,7 +20,11 @@ struct scope {
 typedef struct scope Scope;
 typedef dict_Data object;
 
-/* Scope Functions to get variables */
+
+Scope *newScope(Scope *);
+void free_Scope(Scope *);
+
+/* Scope Functions to set/get variables */
 
 void Scope_Set(Scope *, char *, object *); /* Set (assign) a name in the Scope
 
@@ -24,6 +32,7 @@ void Scope_Set(Scope *, char *, object *); /* Set (assign) a name in the Scope
 					      with that name.
 
 					      */
+
 object *Scope_Get(Scope *, char *); /* Returns the object stored in the scope associated with a name.
 
 				       Search in the Scope if a name exists then return the object
@@ -31,7 +40,5 @@ object *Scope_Get(Scope *, char *); /* Returns the object stored in the scope as
 				       can't found the name then raises an error of Undeclared Variable.
 
 				       */
-
-
 
 #endif

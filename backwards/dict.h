@@ -43,12 +43,18 @@ void setpos(int, dict_node *, dict_node *);
 dict_node *onechild(dict_node *);
 dict_node *mostleft(dict_node *);
 unsigned int avl_height(dict_node *);
-unsigned int avl_len(dict_node *);
-dict_node *remove0(dict_node *);
-dict_node *remove1(dict_node *);
-dict_node *remove2(dict_node *);
-void llrotate(dict_node *);
-void rrrotate(dict_node *);
+unsigned int avl_len(dict_node *); /* Return the number of nodes */
+dict_node *remove0(dict_node *); /* Remove a node without childs */
+dict_node *remove1(dict_node *); /* Remove a node with only 1 child */
+dict_node *remove2(dict_node *); /* Remove a node with 2 childs */
+void llrotate(dict_node *); /* Make a left-left rotation 
+			       30(20(10(a,b),c),d)
+			       20(10(a,b),30(c,d))
+				*/
+void rrrotate(dict_node *); /* Make a right-right rotation
+			       10(a,20(b,30(c,d)))
+			       20(10(a,b),30(c,d))
+				*/
 void lrrotate(dict_node *);
 void rlrotate(dict_node *);
 int balance(dict_node *);
