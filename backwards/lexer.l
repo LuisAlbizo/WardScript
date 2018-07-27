@@ -1,7 +1,9 @@
 %{
 #include "ast.h"
+#include "object.h"
 #include "parser.tab.h"
 #include <stdlib.h>
+#include <string.h>
 
 int lineno = 0;
 
@@ -31,7 +33,6 @@ int lineno = 0;
 ">"	return 'g';
 ">="	return 'G';
 "!"	return '!';
-"#"	return '#';
 
 \(	return LPARENT;
 \)	return RPARENT;
@@ -40,14 +41,12 @@ int lineno = 0;
 \{	return LBRACE;
 \}	return RBRACE;
 
-[0-9]+(\.[0-9]+)?	{
-	// XXX TODO
-	yylval.stat = new_object
-	atof(yytext);
+[1-9][0-9]*	{
+	yylval.stat = new_object(new_bnumber(atoi(yytext)));
 	return NUMBER;
 }
 
-['"a-zA-Z_]['"a-zA-Z_0-9]*	{
+['"$#a-zA-Z_]['"$#a-zA-Z_0-9]*	{
 	if (strcmp(yytext, "fi") == 0) return IF;
 	else if (strcmp(yytext, "esle") == 0) return ELSE;
 	else if (strcmp(yytext, "neht") == 0) return THEN;

@@ -3,7 +3,9 @@
  */
 %{
 #include "ast.h"
+#include "object.h"
 #include "stack.h"
+#include "dict.h"
 #include <string.h>
 
 %}
@@ -96,16 +98,39 @@ assignment: expression EQ NAME
 	  }
 	  ;
 
-expression: NUMBER
-	  | NAME
-	  | LPARENT args RPARENT expression
+expression: NUMBER { $$ = $1; }
+	  | NAME { $$ = $1; }
+	  | LPARENT args RPARENT LBRACKET expression RBRACKET
 	  {
-	  	$$ = new_call($4, $1);
+	  	$$ = new_call($5, $2);
 	  }
-	  | NAME DOT LBRACKET expr RBRACKET
-	  | LPARENT args RPARENT NAME COLON LBRACKET expr RBRACKET
+	  | NAME DOT LBRACKET expression RBRACKET
+	  {
+	  	$$ = new_member($4, $1->name);
+		free($1);
+	  }
+	  | LPARENT args RPARENT NAME COLON LBRACKET expression RBRACKET
+	  {
+	  	$$ = new_memthodcall($7, $4->name, $2);
+		free($4);
+	  }
 	  | END block COLON names FUNCTION NAME RETURN
-	  | node
+	  {
+	  	$$ = new_object(new_bfunction($6->name, $4, $2));
+		free($6);
+	  }
+	  | LBRACE assignment RBRACE
+	  {
+	  	// Node
+		dict *members = newdict(); // create the member's dict for the node
+		assign *member = (assign *) stack_pop($2); // get an assignment
+		while (member) { // while the stack still have assignments left
+			dict_update(members, member->name, (dict_Data *) member->value);
+			free(member); //  free the memory because is not needed
+			member = (assign *) stack_pop($2); // get the next assignment
+		}
+		$$ = new_object(new_bnode(members));
+	  }
 	  ;
 
 expression: expression '+' expression
@@ -166,11 +191,10 @@ expression: expression '+' expression
 	  }
 	  ;
 
-args: { $$ = NULL; }
+args: { $$ = new_stack(); }
     | expression
     {
-    	stack *stck = new_stack();
-	$$ = stck;
+    	$$ = new_stack();
 	stack_push($$, (stack_Data *) $1);
     }
     | expression COMMA args
@@ -180,18 +204,18 @@ args: { $$ = NULL; }
     }
     ;
 
-names: {  }
+names: { $$ = new_stack(); }
      | NAME
      {
+	$$ = new_stack();
+	stack_push($$, $1);
      }
      | NAME COMMA names
      {
+     	$$ = $3;
+	stack_push($$, $1);
      }
      ;
-
-node: LBRACE assignment RBRACE
-    {
-    };
 
 %%
 

@@ -7,6 +7,7 @@
 #include "dict.h"
 #include "scope.h"
 #include "stack.h"
+#include "object.h"
 #include <stdlib.h>
 
 	/* AST Nodetypes */
@@ -101,6 +102,11 @@ struct forever {
 	struct block *block;
 };
 
+struct object {
+	unsigned int type;
+	B_Object *obj;
+};
+
 typedef struct assign		assign;
 typedef struct st		st_st;
 typedef struct block		st_block;
@@ -114,6 +120,7 @@ typedef struct methodcall	st_methodcall;
 typedef struct argnames		st_argnames;
 typedef struct if_		st_if;
 typedef struct forever		st_forever;
+typedef struct object		st_object;
 
 /* AST Creation */
 
@@ -134,6 +141,7 @@ st_st *new_methodcall(st_st *, char *, stack *);
 st_st *new_argnames(stack *);
 st_st *new_if(st_st *, st_block *, st_block *);
 st_st *new_forever(st_block *);
+st_st *new_object(B_Object *);
 
 /* AST Deletion */
 

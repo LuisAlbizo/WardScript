@@ -38,11 +38,23 @@ typedef struct dict_Data dict_Data;
 
 dict_node *newdict_node(char *, dict_Data *, dict_node *, dict_node *, dict_node *);
 unsigned int nchilds(dict_node *);
-int getpos(dict_node *);
-void setpos(int, dict_node *, dict_node *);
-dict_node *onechild(dict_node *);
-dict_node *mostleft(dict_node *);
-unsigned int avl_height(dict_node *);
+int getpos(dict_node *); /* Return the relative position a node has for his parent-node.
+			    return 0 if the node is the left child of his parent-node
+			    return 1 if the node is the right child of his parent-node
+			    return -1 if the node has no parent-node
+			    */
+void setpos(int, dict_node *, dict_node *); /* Set a child to a dict_node according to pos
+					       pos 0 is for left child
+					       pos 1 is for right child
+					       */
+dict_node *onechild(dict_node *); /* Return only onechild of a dict_node, this function is only usefull
+				     for remove1
+				     */
+dict_node *mostleft(dict_node *); /* Return the node most in the left, if dict_node-l is NULL
+					then return dict_node */
+unsigned int avl_height(dict_node *); /* Returns 0 if dict_node is NULL else returns 1 + 
+					 max(avl_height(dict_node->l), avl_height(dict_node->r))
+					 */
 unsigned int avl_len(dict_node *); /* Return the number of nodes */
 dict_node *remove0(dict_node *); /* Remove a node without childs */
 dict_node *remove1(dict_node *); /* Remove a node with only 1 child */
