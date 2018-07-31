@@ -6,7 +6,7 @@
 
 int main() {
 	int opc;
-	char key[MAX_KEY];
+	char key[MAX_DICT_KEY];
 	dict *d = newdict();
 
 	do {

@@ -21,6 +21,9 @@ void raiseError(int errorcode, char *message, void(*callback)()) {
 		case SYNTAX_ERROR:
 			errortype = "Syntax Error";
 			break;
+		case INVALID_BYTE_ERROR:
+			errortype = "Invalid Byte Error";
+			break;
 		default:
 			errortype = "Unknown Error";
 			break;

@@ -1,4 +1,4 @@
-/* General-purpose Stack Data Structure definition file: dict.h
+/* General-purpose Stack Data Structure implementation file: stack.c
  * Luis Albizo "07-22-18"
  */
 #include "stack.h"
@@ -22,14 +22,33 @@ stack *newstack() {
 
 /* Stack Functions */
 
-void stack_push(stack *, stack_Data *);
-stack_Data *stack_pop(stack *);
-stack_Data *traverse(stack *);
+void stack_push(stack *s, stack_Data *d) {
+	stack_node *n = newstack_node(d, s->top);
+	s->top = n;
+}
+
+stack_Data *stack_pop(stack *s) {
+	if (!s->top)
+		return NULL;
+	stack_Data *d = s->top->data;
+	free(s->top);
+	s->top = NULL;
+	return d;
+}
 
 /* Stack Memory Free functions */
 
-void freestack_Data(stack_Data *);
-void freestack_node(stack_node *);
-void freestack(stack *);
+// XXX TODO
 
+void freestack_Data(stack_Data *d) {
+	free(d);
+}
+
+void freestack_node(stack_node *n) {
+	free(n);
+}
+
+void freestack(stack *s) {
+	free(s);
+}
 

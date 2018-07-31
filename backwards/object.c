@@ -30,7 +30,7 @@ dict_Data *Bnode_Get(B_Node *n, char *key) {
 	return dn->data;
 }
 
-void *Bnode_Set(B_Node *n, char *key, dict_Data *d) {
+void Bnode_Set(B_Node *n, char *key, dict_Data *d) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
 		char errorm[200];
@@ -51,27 +51,38 @@ B_Object *new_bnil() {
 	return (B_Object *) n;
 }
 
-/* Number */
+/* Byte */
 
-B_Object *new_bnumber(long n) {
-	B_Number *u = malloc(sizeof(B_Number));
+B_Object *new_bnumber(char n) {
+	B_Byte *u = malloc(sizeof(B_Byte));
 	if (!u)
-		raiseError(MEMORY_ERROR, "can't create new Object Number", NULL);
-	n->type = B_NUMBER;
-	n->number = n;
+		raiseError(MEMORY_ERROR, "can't create new Object Byte", NULL);
+	u->type = B_BYTE;
+	u->byte = n;
 	return (B_Object *) u;
 }
 
 /* Function */
 
-B_Object *new_bfunction(char *return_name, stack *argnames, st_block *code) {
+B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function", NULL);
 	f->type = B_FUNCTION;
+	f->ftype = B_FUNCTYPE;
 	strncpy(f->return_name, return_name, MAX_DICT_KEY);
 	f->argnames = argnames;
 	f->code_block = code;
+	return (B_Object *) f;
+}
+
+B_Object *new_cfunction(B_Object* (*cfunc)(Scope *, stack *)) {
+	B_Function *f = malloc(sizeof(B_Function));
+	if (!f)
+		raiseError(MEMORY_ERROR, "can't create new Object C Function", NULL);
+	f->type = B_FUNCTION;
+	f->ftype = C_FUNCTYPE;
+	f->cfunc = cfunc;
 	return (B_Object *) f;
 }
 
@@ -79,4 +90,4 @@ void free_obj(B_Object *o) {
 	free(o);
 }
 
-#endif
+

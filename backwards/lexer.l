@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "object.h"
 #include "parser.tab.h"
+#include "error.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,7 +43,10 @@ int lineno = 0;
 \}	return RBRACE;
 
 [1-9][0-9]*	{
-	yylval.stat = new_object(new_bnumber(atoi(yytext)));
+	unsigned int n = atoi(yytext);
+	if (n >= 256)
+		raiseError(INVALID_BYTE_ERROR, "byte value greater than 255", NULL);
+	yylval.stat = new_object(new_bbyte(atoi(yytext)));
 	return NUMBER;
 }
 

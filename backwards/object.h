@@ -6,9 +6,10 @@
 
 #include "dict.h"
 #include "stack.h"
+#include "scope.h"
 
 #define B_NODE 55
-#define B_NUMBER 56
+#define B_BYTE 56
 #define B_NIL 57
 #define B_FUNCTION 58
 
@@ -22,33 +23,39 @@ struct B_Node {
 	dict *members;
 };
 
-struct B_Number {
+struct B_Byte {
 	unsigned int type;
-	long number;
+	char byte;
 };
 
 struct B_Nil {
 	unsigned int type;
 };
 
-struct B_F {
-	unsigned int type;
-	char return_name[MAX_DICT_KEY];
-	stack *argnames;
-	st_block *code_block;
-};
-
 typedef struct B_Node	B_Node;
-typedef struct B_Number	B_Number;
+typedef struct B_Byte	B_Byte;
 typedef struct B_Nil	B_Nil;
 typedef struct B_Nil	B_Object;
+
+#define B_FUNCTYPE 100
+#define C_FUNCTYPE 101
+
+struct B_F {
+	unsigned int type;
+	unsigned int ftype;
+	char return_name[MAX_DICT_KEY];
+	stack *argnames;
+	stack *code_block;
+	B_Object* (*cfunc)(Scope *, stack *);
+};
+
 typedef struct B_F	B_Function;
 
 /* Node */
 
 B_Object *new_bnode(dict *);
 dict_Data *Bnode_Get(B_Node *, char *); /* Gets a member of the Node */
-void *Bnode_Set(B_Node *, char *, dict_Data *); /* Set the value of a Node member, but don't
+void Bnode_Set(B_Node *, char *, dict_Data *); /* Set the value of a Node member, but don't
 						   creates new memebers, can only modify existent
 						   member (Inmutability)
 						   */
@@ -57,13 +64,14 @@ void *Bnode_Set(B_Node *, char *, dict_Data *); /* Set the value of a Node membe
 
 B_Object *new_bnil();
 
-/* Number */
+/* Byte */
 
-B_Object *new_bnumber(long);
+B_Object *new_bbyte(char);
 
 /* Function */
 
-B_Object *new_bfunction(char *, stack *, st_block *);
+B_Object *new_bfunction(char *, stack *, stack *);
+B_Object *new_cfunction(B_Object* (*)(Scope *, stack *));
 
 void free_obj(B_Object *);
 

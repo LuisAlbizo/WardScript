@@ -5,7 +5,6 @@
 #define ast_h
 
 #include "dict.h"
-#include "scope.h"
 #include "stack.h"
 #include "object.h"
 #include <stdlib.h>
@@ -20,11 +19,11 @@
 #define AST_IF		7
 #define AST_FOREVER	8
 #define AST_EXIT	9
+#define AST_MEMBER_A	10
 #define AST_MEMBER	11
 #define AST_NAME	12
 #define AST_NAMES	13
-	/* Datatypes */
-#define AST_OBJECT	20
+#define AST_OBJECT	14
 
 /* AST struct definition for each type of statement
 */
@@ -78,6 +77,12 @@ struct member {
 	char name[MAX_DICT_KEY];
 };
 
+struct member_a {
+	unsigned int type; // AST_MEMBER_A
+	struct member *member;
+	struct st *object;
+};
+
 struct methodcall {
 	unsigned int type; // AST_METHODCALL
 	struct st *object; // Object to pass as a self parameter (node)
@@ -116,6 +121,7 @@ typedef struct uop		st_uop;
 typedef struct name		st_name;
 typedef struct call		st_call;
 typedef struct member		st_member;
+typedef struct member_a		st_member_assign;
 typedef struct methodcall	st_methodcall;
 typedef struct argnames		st_argnames;
 typedef struct if_		st_if;
@@ -137,6 +143,7 @@ st_st *new_uop(char, st_st *);
 st_st *new_name(char *);
 st_st *new_call(st_st *, stack *);
 st_st *new_member(st_st *, char *);
+st_st *new_member_assign(st_member *, st_st *);
 st_st *new_methodcall(st_st *, char *, stack *);
 st_st *new_argnames(stack *);
 st_st *new_if(st_st *, st_block *, st_block *);

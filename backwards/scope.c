@@ -20,14 +20,14 @@ void free_Scope(Scope *s) {
 
 /* Scope Functions to get variables */
 
-void Scope_Set(Scope *s, char *key, object *o) {
+void Scope_Set(Scope *s, char *key, Scope_Object *o) {
 	dict_update(s->vars, key, (dict_Data *) o);
 }
 
-object *Scope_Get(Scope *s, char *key) {
+Scope_Object *Scope_Get(Scope *s, char *key) {
 	if (!s)
 		return NULL;
-	object *match = (object *) dict_search(s->vars, key)->data;
+	Scope_Object *match = (Scope_Object *) dict_search(s->vars, key)->data;
 	if (!match)
 		return Scope_Get(s->upscope, key);
 	else

@@ -1,4 +1,4 @@
-/* General-purpose Stack Data Structure definition file: dict.h
+/* General-purpose Stack Data Structure definition file: stack.h
  * Luis Albizo "07-22-18"
  */
 #ifndef stack_h
@@ -35,7 +35,6 @@ stack *newstack();
 /* Stack Functions */
 void stack_push(stack *, stack_Data *);
 stack_Data *stack_pop(stack *);
-stack_Data *traverse(stack *);
 /* Stack Memory Free functions */
 void freestack_Data(stack_Data *);
 void freestack_node(stack_node *);

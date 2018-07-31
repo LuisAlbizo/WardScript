@@ -82,6 +82,14 @@ st_st *new_member(st_st *obj, char *mname) {
 	return (st_st *) m;
 }
 
+st_st *new_member_assign(st_member *member, st_st *obj) {
+	st_member_assign *m = astalloc(sizeof(st_member_assign));
+	m->type = AST_MEMBER_A;
+	m->member = member;
+	m->object = obj;
+	return (st_st *) m;
+}
+
 st_st *new_methodcall(st_st *obj, char *mname, stack *args) {
 	st_methodcall *mc = astalloc(sizeof(st_methodcall));
 	mc->type = AST_METHODCALL;
