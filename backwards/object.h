@@ -46,7 +46,7 @@ struct B_F {
 	char return_name[MAX_DICT_KEY];
 	stack *argnames;
 	stack *code_block;
-	B_Object* (*cfunc)(Scope *, stack *);
+	B_Object* (*cfunc)(stack *, Scope *);
 };
 
 typedef struct B_F	B_Function;
@@ -57,7 +57,7 @@ B_Object *new_bnode(dict *);
 dict_Data *Bnode_Get(B_Node *, char *); /* Gets a member of the Node */
 void Bnode_Set(B_Node *, char *, dict_Data *); /* Set the value of a Node member, but don't
 						   creates new memebers, can only modify existent
-						   member (Inmutability)
+						   members (Inmutability)
 						   */
 
 /* Nil */
@@ -71,7 +71,7 @@ B_Object *new_bbyte(char);
 /* Function */
 
 B_Object *new_bfunction(char *, stack *, stack *);
-B_Object *new_cfunction(B_Object* (*)(Scope *, stack *));
+B_Object *new_cfunction(B_Object* (*)(stack *, Scope *));
 
 void free_obj(B_Object *);
 

@@ -35,7 +35,7 @@ st_st *eva_name(st_name *n, Scope *S) {
 		strcat(e, "use of name '");
 		strcat(e, n->name);
 		strcat(e, "' before assignment");
-		raiseError(UNDECLARED_ERROR, e, NULL);
+		raiseError(UNDECLARED_ERROR, e);
 	}
 	return (st_st *) new_object((B_Object *) o);
 }
@@ -102,7 +102,7 @@ st_st *eva_bop(st_bop *bop) {
 		}
 		result = new_object(new_bbyte((char) lnumber));
 	} else
-		raiseError(OPERATOR_ERROR, "invalid operation for no-number types", NULL);
+		raiseError(OPERATOR_ERROR, "invalid operation for no-number types");
 	return result;
 }
 
@@ -140,7 +140,7 @@ st_st *eva_uop(st_uop *uop) {
 			}
 			break;
 		default:
-			raiseError(OPERATOR_ERROR, "invalid unary operator for node type", NULL);
+			raiseError(OPERATOR_ERROR, "invalid unary operator for node type");
 			break;
 	}
 	return new_object(new_bbyte((char) rnumber));
@@ -180,12 +180,9 @@ st_st *eva_if(st_if *ifst, Scope *S) {
 st_st *eva_forever(st_forever *rvr, Scope *S) {
 	stack_node *stat = rvr->block->block->top;
 	while (1) {
-		if (!stat)
-			stat = rvr->block->block->top;
-		if (eva_((st_st *) (stat->data), S)->type == AST_EXIT)
-			break;
-		else
-			stat = stat->next;
+		if (!stat) stat = rvr->block->block->top;
+		if (eva_((st_st *) (stat->data), S)->type == AST_EXIT) break;
+		else stat = stat->next;
 	}
 	return NULL;
 }
@@ -193,7 +190,37 @@ st_st *eva_forever(st_forever *rvr, Scope *S) {
 /* CALL */
 
 st_st *eva_call(st_call *call, Scope *S) {
-
+	B_Function *f = (B_Function *) ((st_object *) eva_(call->callable, S))->obj;
+	if (f->type != B_FUNCTION)
+		raiseError(UNCALLABLE_ERROR, "not a function expression");
+	stack_node *stat;
+	B_Object *return_obj;
+	Scope *FS = newScope(S);
+	switch (f->ftype) {
+		case B_FUNCTYPE:
+			if (f->argnames->count != call->args->count)
+				raiseError(ARGCOUNT_ERROR, "");
+			stack_node *argval = call->args->top;
+			stack_node *argname = f->argnames->top;
+			while (argval && argname) {
+				Scope_Set(FS, ((st_name *) argname)->name, (Scope_Object *) eva_((st_st *) argval, S));
+				argval = argval->next;
+				argname = argname->next;
+			}
+			stat = f->code_block->top;
+			while (stat) {
+				if (eva_((st_st *) stat, S)->type == AST_EXIT) break;
+				else stat = stat->next;
+			}
+			return_obj = (B_Object *) Scope_Get(FS, f->return_name);
+			if (!return_obj)
+				raiseError(UNDECLARED_ERROR, "return name not declared");
+			break;
+		case C_FUNCTYPE:
+			return_obj = f->cfunc(call->args, FS);
+			break;
+	}
+	return new_object(return_obj);
 }
 
 /* METHODCALL */

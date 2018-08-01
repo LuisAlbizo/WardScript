@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void raiseError(int errorcode, char *message, void(*callback)()) {
+void raiseError(int errorcode, char *message) {
 	char *errortype;
 	switch (errorcode) {
 		case MEMORY_ERROR:
@@ -23,6 +23,12 @@ void raiseError(int errorcode, char *message, void(*callback)()) {
 			break;
 		case INVALID_BYTE_ERROR:
 			errortype = "Invalid Byte Error";
+			break;
+		case UNCALLABLE_ERROR:
+			errortype = "Uncallable Expression Error";
+			break;
+		case ARGCOUNT_ERROR:
+			errortype = "Argument Count Error";
 			break;
 		default:
 			errortype = "Unknown Error";

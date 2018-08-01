@@ -14,7 +14,7 @@
 void *astalloc(size_t size) {
 	void *mem = malloc(size);
 	if (!mem)
-		raiseError(MEMORY_ERROR, "can't create new AST.", NULL);
+		raiseError(MEMORY_ERROR, "can't create new AST");
 	return mem;
 }
 

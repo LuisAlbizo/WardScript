@@ -25,14 +25,16 @@ stack *newstack() {
 void stack_push(stack *s, stack_Data *d) {
 	stack_node *n = newstack_node(d, s->top);
 	s->top = n;
+	s->count++;
 }
 
 stack_Data *stack_pop(stack *s) {
 	if (!s->top)
 		return NULL;
 	stack_Data *d = s->top->data;
-	free(s->top);
-	s->top = NULL;
+	//free(s->top);
+	s->top = s->top->next;
+	s->count--;
 	return d;
 }
 
