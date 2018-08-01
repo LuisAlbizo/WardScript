@@ -10,6 +10,7 @@
 #define SYNTAX_ERROR		4
 #define UNCALLABLE_ERROR	5
 #define ARGCOUNT_ERROR		6
+#define TYPE_ERROR		7
 
 void raiseError(int, char *); /* int is the error code, is what the program returns to the console
 					    at the exit

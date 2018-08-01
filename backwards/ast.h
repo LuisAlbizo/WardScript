@@ -68,7 +68,7 @@ struct name {
 struct call {
 	unsigned int type; // AST_CALL
 	struct st *callable;
-	stack *args; // Stack of stats
+	stack *args; // Stack of statements
 };
 
 struct member {

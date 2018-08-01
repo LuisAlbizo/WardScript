@@ -42,8 +42,10 @@ st_st *eva_name(st_name *n, Scope *S) {
 
 /* BOP */
 
-st_st *eva_bop(st_bop *bop) {
+st_st *eva_bop(st_bop *bop, Scope *S) {
 	st_st *result;
+	bop->left = eva_(bop->left, S);
+	bop->right = eva_(bop->right, S);
 	if ( ((st_object *) bop->left)->obj->type == B_BYTE && ((st_object *) bop->right)->obj->type == B_BYTE ) {
 		unsigned int lnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->left)->obj)->byte;
 		unsigned int rnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->right)->obj)->byte;
@@ -108,8 +110,9 @@ st_st *eva_bop(st_bop *bop) {
 
 /* UOP */
 
-st_st *eva_uop(st_uop *uop) {
+st_st *eva_uop(st_uop *uop, Scope *S) {
 	unsigned int rnumber;
+	uop->right = eva_(uop->right, S);
 	switch (((st_object *) uop->right)->obj->type) {
 		case B_BYTE:
 			rnumber = (unsigned int) ((B_Byte *) ((st_object *) uop->right)->obj)->byte;
@@ -198,6 +201,7 @@ st_st *eva_call(st_call *call, Scope *S) {
 	Scope *FS = newScope(S);
 	switch (f->ftype) {
 		case B_FUNCTYPE:
+			// Setting the arguments on the FScope
 			if (f->argnames->count != call->args->count)
 				raiseError(ARGCOUNT_ERROR, "");
 			stack_node *argval = call->args->top;
@@ -208,6 +212,7 @@ st_st *eva_call(st_call *call, Scope *S) {
 				argname = argname->next;
 			}
 			stat = f->code_block->top;
+			// Evaluating the code of the function
 			while (stat) {
 				if (eva_((st_st *) stat, S)->type == AST_EXIT) break;
 				else stat = stat->next;
@@ -226,28 +231,88 @@ st_st *eva_call(st_call *call, Scope *S) {
 /* METHODCALL */
 
 st_st *eva_methodcall(st_methodcall *mcall, Scope *S) {
-
+	st_call *call;
+	B_Object *o = ((st_object *) eva_(mcall->object, S))->obj;
+	if (o->type != B_NODE)
+		raiseError(TYPE_ERROR, "required a Node Object to call a method");
+	B_Object *f = (B_Object *) dict_search(((B_Node *) o)->members, mcall->method)->data;
+	if (f->type != B_FUNCTION)
+		raiseError(TYPE_ERROR, "method must be a Function");
+	call = (st_call *) new_call(new_object(f), mcall->args);
+	stack_push(call->args, (stack_Data *) new_object(o));
+	return eva_call(call, S);
 }
 
 /* MEMBER */
 
 st_st *eva_member(st_member *member, Scope *S) {
-
+	B_Object *o = ((st_object *) eva_(member->object, S))->obj;
+	if (o->type != B_NODE)
+		raiseError(TYPE_ERROR, "only Node Objects had members");
+	dict_node *dd = dict_search(((B_Node *) o)->members, member->name);
+	if (!dd)
+		raiseError(UNDECLARED_ERROR, strcat("node has no member ", member->name));
+	o = (B_Object *) dd->data;
+	return new_object(o);
 }
 
 /* MEMBER ASSIGN */
 
 st_st *eva_member_assign(st_member_assign *massign, Scope *S) {
-
+	B_Object *o = ((st_object *) eva_(massign->member->object, S))->obj;
+	if (o->type != B_NODE)
+		raiseError(TYPE_ERROR, "only can assign a member of a Node Object");
+	dict_node *dd = dict_search(((B_Node *) o)->members, massign->member->name);
+	if (!dd)
+		raiseError(UNDECLARED_ERROR, strcat("can't assign member not declared ", massign->member->name));
+	o = ((st_object *) eva_(massign->object, S))->obj;
+	dd->data = (dict_Data *) o;
+	return NULL;
 }
 
 /* GENERAL EVALUATOR */
 
 st_st *eva_(st_st *stat, Scope *S) {
-
+	st_st *ret;
+	switch (stat->type) {
+		case AST_EXIT:
+			ret = stat;
+			break;
+		case AST_OBJECT:
+			ret = stat;
+			break;
+		case AST_BOP:
+			ret = eva_bop((st_bop *) stat, S);
+			break;
+		case AST_UOP:
+			ret = eva_uop((st_uop *) stat, S);
+			break;
+		case AST_NAME:
+			ret = eva_name((st_name *) stat, S);
+			break;
+		case AST_MEMBER:
+			ret = eva_member((st_member *) stat, S);
+			break;
+		case AST_MEMBER_A:
+			ret = eva_member_assign((st_member_assign *) stat, S);
+			break;
+		case AST_IF:
+			ret = eva_if((st_if *) stat, S);
+			break;
+		case AST_FOREVER:
+			ret = eva_forever((st_forever *) stat, S);
+			break;
+		case AST_CALL:
+			ret = eva_uop((st_uop *) stat, S);
+			break;
+		case AST_METHODCALL:
+			ret = eva_methodcall((st_methodcall *) stat, S);
+			break;
+		case AST_ASSIGNMENT:
+			ret = eva_assignment((st_assignment *) stat, S);
+			break;
+	}
+	return ret;
 }
-
-
-
 
 

@@ -22,9 +22,9 @@ B_Object *to_bool(B_Object *);
 /* NAME */
 st_st *eva_name(st_name *, Scope *);
 /* BOP */
-st_st *eva_bop(st_bop *);
+st_st *eva_bop(st_bop *, Scope *);
 /* UOP */
-st_st *eva_uop(st_uop *);
+st_st *eva_uop(st_uop *, Scope *);
 /* ASSIGNMENT */
 st_st *eva_assignment(st_assignment *, Scope *);
 /* IF */

@@ -30,6 +30,9 @@ void raiseError(int errorcode, char *message) {
 		case ARGCOUNT_ERROR:
 			errortype = "Argument Count Error";
 			break;
+		case TYPE_ERROR:
+			errortype = "Type Error";
+			break;
 		default:
 			errortype = "Unknown Error";
 			break;
