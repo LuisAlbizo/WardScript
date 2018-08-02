@@ -6,6 +6,7 @@
 #include "object.h"
 #include "stack.h"
 #include "dict.h"
+#include "bward.h"
 #include <string.h>
 
 %}
@@ -17,7 +18,7 @@
 }
 
 %token EQ
-%token DOT COMMA COLON SEMICOLON
+%token DOT COMMA COLON
 %token LPARENT RPARENT LBRACKET RBRACKET LBRACE RBRACE
 %token IF THEN ELSE END FOREVER EXIT FUNCTION RETURN
 %token <stat> NAME NUMBER
@@ -57,7 +58,6 @@ block: { $$ = NULL; }
      ;
 
 statement: expression { $$ = $1; }
-	 | SEMICOLON { $$ = NULL; }
 	 | END block THEN expression IF
 	 {
 	 	$$ = new_if($4, $2, NULL);

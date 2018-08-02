@@ -33,13 +33,14 @@ void raiseError(int errorcode, char *message) {
 		case TYPE_ERROR:
 			errortype = "Type Error";
 			break;
+		case LOOP_ERROR:
+			errortype = "Loop Error";
+			break;
 		default:
 			errortype = "Unknown Error";
 			break;
 	}
 	fprintf(stderr, "%s: %s\n", errortype, message);
-	if (callback)
-		(*callback)();
 	exit(errorcode);
 }
 

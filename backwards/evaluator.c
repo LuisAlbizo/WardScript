@@ -168,6 +168,8 @@ st_st *eva_if(st_if *ifst, Scope *S) {
 	B_Object *cond = to_bool(((st_object *) eva_(ifst->condition, S))->obj);
 	st_block *blck = (((B_Byte *)cond)->byte ? ifst->block_if : ifst->block_else);
 	free(cond);
+	if (!blck)
+		return NULL;
 	stack_node *stat = blck->block->top;
 	while (stat) {
 		if (eva_((st_st *) (stat->data), S)->type == AST_EXIT)
@@ -181,6 +183,8 @@ st_st *eva_if(st_if *ifst, Scope *S) {
 /* FOREVER */
 
 st_st *eva_forever(st_forever *rvr, Scope *S) {
+	if (!rvr->block)
+		raiseError(LOOP_ERROR, "infinite loop detected");
 	stack_node *stat = rvr->block->block->top;
 	while (1) {
 		if (!stat) stat = rvr->block->block->top;
@@ -199,29 +203,45 @@ st_st *eva_call(st_call *call, Scope *S) {
 	stack_node *stat;
 	B_Object *return_obj;
 	Scope *FS = newScope(S);
+	stack_node *argval;
 	switch (f->ftype) {
 		case B_FUNCTYPE:
 			// Setting the arguments on the FScope
 			if (f->argnames->count != call->args->count)
 				raiseError(ARGCOUNT_ERROR, "");
-			stack_node *argval = call->args->top;
+			argval = call->args->top;
 			stack_node *argname = f->argnames->top;
 			while (argval && argname) {
-				Scope_Set(FS, ((st_name *) argname)->name, (Scope_Object *) eva_((st_st *) argval, S));
+				Scope_Set(FS, ((st_name *) argname)->name,
+					(Scope_Object *) ((st_object *) eva_((st_st *) argval->data, S))->obj);
 				argval = argval->next;
 				argname = argname->next;
 			}
-			stat = f->code_block->top;
 			// Evaluating the code of the function
-			while (stat) {
-				if (eva_((st_st *) stat, S)->type == AST_EXIT) break;
-				else stat = stat->next;
+			if (f->code_block) {
+				stat = f->code_block->top;
+				while (stat) {
+					if (eva_((st_st *) stat, S)->type == AST_EXIT) break;
+					else stat = stat->next;
+				}
 			}
 			return_obj = (B_Object *) Scope_Get(FS, f->return_name);
 			if (!return_obj)
 				raiseError(UNDECLARED_ERROR, "return name not declared");
 			break;
-		case C_FUNCTYPE:
+		case C_FUNCTYPE:;
+			stack *evalargs = newstack();
+			stack_Data *arg = stack_pop(call->args);
+			while (arg) {
+				stack_push(evalargs, arg);
+				arg = stack_pop(call->args);
+			}
+			arg = stack_pop(evalargs);
+			while (arg) {
+				stack_push(call->args, 
+						(stack_Data *) ((st_object *) eva_((st_st *) arg, S))->obj);
+				arg = stack_pop(evalargs);
+			}
 			return_obj = f->cfunc(call->args, FS);
 			break;
 	}
@@ -274,6 +294,7 @@ st_st *eva_member_assign(st_member_assign *massign, Scope *S) {
 
 st_st *eva_(st_st *stat, Scope *S) {
 	st_st *ret;
+	if (!stat)
 	switch (stat->type) {
 		case AST_EXIT:
 			ret = stat;
