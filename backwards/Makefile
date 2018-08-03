@@ -1,6 +1,7 @@
 
 install: parser stack dict object eval scope ast error
-	cc *.o parser.tab.c lex.yy.c -o backwards -lfl
+	cc *.o parser.tab.c lex.yy.c -o bwar -lfl -g
+	make clean
 
 eval: evaluator.c evaluator.h
 	cc -c evaluator.c
@@ -28,5 +29,5 @@ parser: lexer.l parser.y
 	bison -d parser.y
 
 clean:
-	rm *.o
+	rm *.o parser.tab.* lex.yy.c
 

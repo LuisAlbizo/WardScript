@@ -41,7 +41,7 @@ int lineno = 0;
 \{	return LBRACE;
 \}	return RBRACE;
 
-[1-9][0-9]*	{
+[0-9]+	{
 	unsigned int n = atoi(yytext);
 	if (n >= 256)
 		raiseError(INVALID_BYTE_ERROR, "byte value greater than 255");

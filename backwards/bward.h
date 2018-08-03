@@ -9,8 +9,12 @@
 #include "scope.h"
 #include "object.h"
 #include "stack.h"
+#include "ast.h"
+#include "evaluator.h"
 
 extern int yylineno;
+extern FILE *yyin;
+extern st_block *program;
 
 void yyerror(char *s, ...) {
 	va_list ap;
@@ -20,6 +24,16 @@ void yyerror(char *s, ...) {
 	vfprintf(stderr, s, ap);
 	fprintf(stderr, "\n"); 
 }
+
+/*int yyparse(char const *filename) {
+	yyin = fopen(filename, "r");
+	if (!yyin) {
+		perror("No file founded\n");
+		exit(1);
+	}
+	
+	return 0;
+}*/
 
 /* Built-in Functions */
 
@@ -48,14 +62,32 @@ B_Object *present(stack *args, Scope *S) {
 
 /* Global Scope */
 
-int main() {
+int main(int argc, char **argv) {
+	if (argc < 2) {
+		perror("Specify a file\n");
+		exit(1);
+	}
+	yyin = fopen(argv[1], "r");
+	if (!yyin) {
+		perror("No file found\n");
+		exit(1);
+	}
+	if (yyparse())
+		exit(33);
+	printf("Succesfull Parse\n");
+
 	Scope *GS = newScope(NULL);
 
 	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&present));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
-	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));
+	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(9));
 	printf("backward\n");
-	return 0;
+
+	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block));
+
+	B_Byte *return_code = (B_Byte *) ((st_object *) eva_(new_call(mainfunc, newstack()), GS))->obj;
+
+	return (int) return_code->byte;
 }
 
 #endif

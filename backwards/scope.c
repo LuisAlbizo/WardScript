@@ -25,9 +25,12 @@ void Scope_Set(Scope *s, char *key, Scope_Object *o) {
 }
 
 Scope_Object *Scope_Get(Scope *s, char *key) {
+	printf("scope get\n");
 	if (!s)
 		return NULL;
+	printf("scope is not null\n");
 	Scope_Object *match = (Scope_Object *) dict_search(s->vars, key)->data;
+	printf("scope match\n");
 	if (!match)
 		return Scope_Get(s->upscope, key);
 	else

@@ -1,0 +1,15 @@
+
+
+
+dne
+	( i )[ present ]
+	dne
+		i + 1 =: i
+	esle
+		tixe
+	neht 10 > i fi
+reverof
+
+0 =: i
+
+

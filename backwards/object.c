@@ -65,6 +65,7 @@ B_Object *new_bbyte(char n) {
 /* Function */
 
 B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
+	printf("new B Function\n");
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function");
@@ -77,6 +78,7 @@ B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
 }
 
 B_Object *new_cfunction(B_Object* (*cfunc)(stack *, Scope *)) {
+	printf("new C Function\n");
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object C Function");

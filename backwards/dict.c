@@ -3,12 +3,15 @@
  */
 #include "dict.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 /* AVL Functions */
 
 dict_node *newdict_node(char *key, dict_Data *d, dict_node *parent, dict_node *l, dict_node *r) {
 	dict_node *n = malloc(sizeof(dict_node));
 	if (!n) {
+		printf("can't create new dict node\n");
+		exit(1);
 		return NULL;
 	}
 	strncpy(n->key, key, (strlen(key) > MAX_DICT_KEY ? MAX_DICT_KEY : strlen(key)));
@@ -181,6 +184,7 @@ void rebalance(dict_node *n) {
 /* Dict Functions */
 
 void dict_update(dict *d, char *key, dict_Data *v) {
+	printf("dict update: %s\n", key);
 	/* Update value if key exists else inserts a new key-value on the dict.
 	 */
 	if (!d->root) {
@@ -213,10 +217,13 @@ void dict_update(dict *d, char *key, dict_Data *v) {
 }
 
 dict_node *dict_search(dict *d, char *key) {
+	printf("dict search: %s\n", key);
 	if (!d->root)
 		return NULL;
+	printf("d->root acces\n");
 	dict_node *curdict_node = d->root;
 	while (1) {
+		printf("cur node: %s\n", curdict_node->key);
 		if (strcmp(key, curdict_node->key) < 0) {
 			if (curdict_node->l)
 				curdict_node = curdict_node->l;
@@ -286,6 +293,10 @@ void dict_remove(dict *d, char *key) {
 
 dict *newdict() {
 	dict *d = malloc(sizeof(dict));
+	if (!d) {
+		printf("memory insuficient for dict alloc\n");
+		exit(1);
+	}
 	return d;
 }
 
