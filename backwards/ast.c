@@ -83,6 +83,14 @@ st_st *new_call(st_st *callable, stack *args) {
 	return (st_st *) c;
 }
 
+st_st *new_node_construct(st_assignment *mems) {
+	printf("new NODE CONSTRUCT\n");
+	st_node_construct *nc = astalloc(sizeof(st_node_construct));
+	nc->type = AST_NODE_C;
+	nc->members = mems;
+	return (st_st *) nc;
+}
+
 st_st *new_member(st_st *obj, char *mname) {
 	printf("new AST_MEMBER\n");
 	st_member *m = astalloc(sizeof(st_member));

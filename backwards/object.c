@@ -20,22 +20,26 @@ B_Object *new_bnode(dict *d) {
 }
 
 dict_Data *Bnode_Get(B_Node *n, char *key) {
+	printf("Node Get:\n");
 	dict_node *dn = dict_search(n->members, key);
+	printf("Node Get.\n");
 	if (!dn) {
-		char errorm[200];
-		strcpy(errorm, "node has no member called: ");
-		strcat(errorm, key);
+		printf("member not found.....\n");
+		char errorm[300] = "";
+		strncpy(errorm, "node has no member called: ", 100);
+		strncat(errorm, key, 200);
 		raiseError(UNDECLARED_ERROR, errorm);
 	}
+	printf("gonna return data\n");
 	return dn->data;
 }
 
 void Bnode_Set(B_Node *n, char *key, dict_Data *d) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
-		char errorm[200];
-		strcpy(errorm, "node has no member called: ");
-		strcat(errorm, key);
+		char errorm[300] = "";
+		strncpy(errorm, "node has no member called: ",100);
+		strncat(errorm, key, 200);
 		raiseError(UNDECLARED_ERROR, errorm);
 	}
 	dn->data = d;

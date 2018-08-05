@@ -20,7 +20,6 @@ struct scope {
 typedef struct scope Scope;
 typedef dict_Data Scope_Object;
 
-
 Scope *newScope(Scope *);
 void free_Scope(Scope *);
 

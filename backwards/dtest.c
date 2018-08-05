@@ -6,34 +6,34 @@ struct data {
 	int data;
 };
 
-void d_update(dict *, char *, int);
-int d_search(dict *, char *);
+void d_set(dict *, char *, int);
+int d_get(dict *, char *);
 
 int main() {
-	dict *mydict = newdict();
+	dict *mys = newdict();
 
-	d_update(mydict, "cinco", 5);
-	d_update(mydict, "cinco", -5);
-	d_update(mydict, "seis", 6);
-	d_update(mydict, "cincuenta", 50);
-	d_update(mydict, "uno", 1);
-	d_update(mydict, "menos uno", -1);
+	d_set(mys, "uno", 1);
+	d_set(mys, "dos", 2);
+	d_set(mys, "tres", 3);
+	d_set(mys, "cuatro", 4);
+	d_set(mys, "cinco", 5);
 
-	printf("search: menos uno = %d\n", d_search(mydict, "menos uno"));
-	printf("search: uno = %d\n", d_search(mydict, "uno"));
-	printf("search: cinco = %d\n", d_search(mydict, "cinco"));
-	printf("search: dos = %d\n", d_search(mydict, "dos"));
+	printf("get uno : %d\n", d_get(mys,"uno"));
+	printf("get dos : %d\n", d_get(mys,"dos"));
+	printf("get tres : %d\n", d_get(mys,"tres"));
+	printf("get four : %d\n", d_get(mys,"four"));
+	printf("get uno : %d\n", d_get(mys,"uno"));
 
 	return 0;
 }
 
-void d_update(dict *d, char *key, int v) {
+void d_set(dict *d, char *key, int v) {
 	struct data *data = malloc(sizeof(struct data));
 	data->data = v;
 	dict_update(d, key, (dict_Data *) data);
 }
 
-int d_search(dict *d, char *key) {
+int d_get(dict *d, char *key) {
 	dict_node *m = dict_search(d, key);
 	if (!m) {
 		printf("error, %s not found\n", key);

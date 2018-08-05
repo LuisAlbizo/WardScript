@@ -35,6 +35,8 @@ st_st *eva_forever(st_forever *, Scope *);
 st_st *eva_call(st_call *, Scope *);
 /* METHODCALL */
 st_st *eva_methodcall(st_methodcall *, Scope *);
+/* NODE CONSTRUCT */
+st_st *eva_node_construct(st_node_construct *, Scope *);
 /* MEMBER */
 st_st *eva_member(st_member *, Scope *);
 /* MEMBER ASSIGN */

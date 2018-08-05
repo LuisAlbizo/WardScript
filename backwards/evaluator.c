@@ -8,6 +8,7 @@
 #include "scope.h"
 #include "error.h"
 #include "object.h"
+#include "dict.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -46,12 +47,13 @@ st_st *eva_name(st_name *n, Scope *S) {
 
 st_st *eva_bop(st_bop *bop, Scope *S) {
 	printf("eva BOP: %c\n", bop->op);
-	st_st *result;
+	st_st *result = NULL;
 	bop->left = eva_(bop->left, S);
 	bop->right = eva_(bop->right, S);
 	if ( ((st_object *) bop->left)->obj->type == B_BYTE && ((st_object *) bop->right)->obj->type == B_BYTE ) {
 		unsigned int lnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->left)->obj)->byte;
 		unsigned int rnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->right)->obj)->byte;
+		printf("bop: %d %c %d\n", lnumber, bop->op, rnumber);
 		switch (bop->op) {
 			case '+':
 				lnumber = lnumber + rnumber;
@@ -103,11 +105,14 @@ st_st *eva_bop(st_bop *bop, Scope *S) {
 				lnumber = lnumber || rnumber;
 				break;
 			default:
+				printf("rare BOP\n");
 				break;
 		}
 		result = new_object(new_bbyte((char) lnumber));
 	} else
 		raiseError(OPERATOR_ERROR, "invalid operation for no-number types");
+	if (!result)
+		printf("BOP NULL result\n");
 	return result;
 }
 
@@ -164,7 +169,7 @@ st_st *eva_assignment(st_assignment *assi, Scope *S) {
 		Scope_Set(S, a->name, (Scope_Object *) o);
 		a = (assign *) stack_pop(assi->assigns);
 	}
-	return NULL;
+	return new_st();
 }
 
 /* IF */
@@ -172,18 +177,22 @@ st_st *eva_assignment(st_assignment *assi, Scope *S) {
 st_st *eva_if(st_if *ifst, Scope *S) {
 	printf("eva IF\n");
 	B_Object *cond = to_bool(((st_object *) eva_(ifst->condition, S))->obj);
-	st_block *blck = (((B_Byte *)cond)->byte ? ifst->block_if : ifst->block_else);
-	free(cond);
-	if (!blck)
-		return NULL;
+	st_block *blck = (((B_Byte *) cond)->byte ? ifst->block_if : ifst->block_else);
+	//free(cond);
+	st_st *ex = new_st();
+	if (!blck) {
+		return ex;
+		printf("null block on if\n");
+	}
 	stack_node *stat = blck->block->top;
 	while (stat) {
-		if (eva_((st_st *) (stat->data), S)->type == AST_EXIT)
-			return eva_((st_st *) (stat->data), S);
-		else
+		if (eva_((st_st *) stat->data, S)->type == AST_EXIT) {
+			ex->type = AST_EXIT;
+			break;
+		} else
 			stat = stat->next;
 	}
-	return NULL;
+	return ex;
 }
 
 /* FOREVER */
@@ -193,12 +202,18 @@ st_st *eva_forever(st_forever *rvr, Scope *S) {
 	if (!rvr->block)
 		raiseError(LOOP_ERROR, "infinite loop detected");
 	stack_node *stat = rvr->block->block->top;
+	st_st *s = NULL;
 	while (1) {
-		if (!stat) stat = rvr->block->block->top;
-		if (eva_((st_st *) (stat->data), S)->type == AST_EXIT) break;
-		else stat = stat->next;
+		if (!stat)
+			stat = rvr->block->block->top;
+		s = eva_((st_st *) (stat->data), S);
+		printf("forever eval: %d\n", (int) s->type);
+		if (s->type == AST_EXIT)
+			break;
+		else
+			stat = stat->next;
 	}
-	return NULL;
+	return new_st();
 }
 
 /* CALL */
@@ -233,7 +248,7 @@ st_st *eva_call(st_call *call, Scope *S) {
 				stat = f->code_block->top;
 				printf("evaluating...\n");
 				while (stat) {
-					if (eva_((st_st *) stat->data, S)->type == AST_EXIT) break;
+					if (eva_((st_st *) stat->data, FS)->type == AST_EXIT) break;
 					else stat = stat->next;
 				}
 			}
@@ -243,19 +258,25 @@ st_st *eva_call(st_call *call, Scope *S) {
 			break;
 		case C_FUNCTYPE:;
 			printf("eva C_Function\n");
-			stack *evalargs = newstack();
+			stack *evalargs = newstack(), *passargs = newstack();
 			stack_Data *arg = stack_pop(call->args);
+			printf("traspassing args...\n");
+			int i = 0;
 			while (arg) {
+				printf("%d\n", ++i);
 				stack_push(evalargs, arg);
 				arg = stack_pop(call->args);
 			}
+			printf("evaling args...\n");
 			arg = stack_pop(evalargs);
 			while (arg) {
-				stack_push(call->args, 
+				stack_push(call->args, arg);
+				stack_push(passargs, 
 						(stack_Data *) ((st_object *) eva_((st_st *) arg, S))->obj);
+				printf("%d: %d\n", i--, passargs->top->data->type);
 				arg = stack_pop(evalargs);
 			}
-			return_obj = f->cfunc(call->args, FS);
+			return_obj = f->cfunc(passargs, FS);
 			break;
 	}
 	return new_object(return_obj);
@@ -277,6 +298,24 @@ st_st *eva_methodcall(st_methodcall *mcall, Scope *S) {
 	return eva_call(call, S);
 }
 
+/* NODE CONSTRUCT */
+
+st_st *eva_node_construct(st_node_construct *nodecons, Scope *S) {
+	printf("eva NODE CONSTRUCT\n");
+	// create the member's dict for the node
+	dict *members = newdict();
+	// get the first assign
+	assign *member = (assign *) stack_pop(((st_assignment *) nodecons->members)->assigns);
+	while (member) { // while the stack still have assigns left
+		// set the name and evaluate the value
+		dict_update(members, member->name, (dict_Data *) ((st_object *) eva_(member->value, S))->obj);
+		free(member); // free the memory because is not needed
+		// get the next assign
+		member = (assign *) stack_pop(((st_assignment *) nodecons->members)->assigns);
+	}
+	return new_object(new_bnode(members));
+}
+
 /* MEMBER */
 
 st_st *eva_member(st_member *member, Scope *S) {
@@ -284,10 +323,8 @@ st_st *eva_member(st_member *member, Scope *S) {
 	B_Object *o = ((st_object *) eva_(member->object, S))->obj;
 	if (o->type != B_NODE)
 		raiseError(TYPE_ERROR, "only Node Objects had members");
-	dict_node *dd = dict_search(((B_Node *) o)->members, member->name);
-	if (!dd)
-		raiseError(UNDECLARED_ERROR, strcat("node has no member ", member->name));
-	o = (B_Object *) dd->data;
+	dict_Data *dd = Bnode_Get((B_Node *) o, member->name);
+	o = (B_Object *) dd;
 	return new_object(o);
 }
 
@@ -298,12 +335,8 @@ st_st *eva_member_assign(st_member_assign *massign, Scope *S) {
 	B_Object *o = ((st_object *) eva_(massign->member->object, S))->obj;
 	if (o->type != B_NODE)
 		raiseError(TYPE_ERROR, "only can assign a member of a Node Object");
-	dict_node *dd = dict_search(((B_Node *) o)->members, massign->member->name);
-	if (!dd)
-		raiseError(UNDECLARED_ERROR, strcat("can't assign member not declared ", massign->member->name));
-	o = ((st_object *) eva_(massign->object, S))->obj;
-	dd->data = (dict_Data *) o;
-	return NULL;
+	Bnode_Set((B_Node *) o, massign->member->name, (dict_Data *) ((st_object *) eva_(massign->object, S))->obj);
+	return new_st();
 }
 
 /* GENERAL EVALUATOR */
@@ -312,7 +345,7 @@ st_st *eva_(st_st *stat, Scope *S) {
 	if (!stat)
 		return NULL;
 	printf("eva _ (%i)\n", stat->type);
-	st_st *ret;
+	st_st *ret = NULL;
 	switch (stat->type) {
 		case AST_EXIT:
 			ret = stat;
@@ -328,6 +361,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 			break;
 		case AST_NAME:
 			ret = eva_name((st_name *) stat, S);
+			break;
+		case AST_NODE_C:
+			ret = eva_node_construct((st_node_construct *) stat, S);
 			break;
 		case AST_MEMBER:
 			ret = eva_member((st_member *) stat, S);
@@ -349,6 +385,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 			break;
 		case AST_ASSIGNMENT:
 			ret = eva_assignment((st_assignment *) stat, S);
+			break;
+		default:
+			ret = new_st();
 			break;
 	}
 	return ret;

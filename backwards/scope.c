@@ -29,11 +29,10 @@ Scope_Object *Scope_Get(Scope *s, char *key) {
 	if (!s)
 		return NULL;
 	printf("scope is not null\n");
-	Scope_Object *match = (Scope_Object *) dict_search(s->vars, key)->data;
+	dict_node *match = dict_search(s->vars, key);
 	printf("scope match\n");
 	if (!match)
 		return Scope_Get(s->upscope, key);
-	else
-		return match;
+	return (Scope_Object *) match->data;
 }
 

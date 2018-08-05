@@ -14,7 +14,8 @@ dict_node *newdict_node(char *key, dict_Data *d, dict_node *parent, dict_node *l
 		exit(1);
 		return NULL;
 	}
-	strncpy(n->key, key, (strlen(key) > MAX_DICT_KEY ? MAX_DICT_KEY : strlen(key)));
+	strncpy(n->key, key, MAX_DICT_KEY);
+	n->key[MAX_DICT_KEY-1] = '\x00';
 	n->data = d;
 	n->parent = parent;
 	n->l = l;
@@ -191,8 +192,10 @@ void dict_update(dict *d, char *key, dict_Data *v) {
 		d->root = newdict_node(key, v, NULL, NULL, NULL);
 		return;
 	}
+	printf("dict root access\n");
 	dict_node *curdict_node = d->root;
 	while (1) {
+		printf("strcmp: %d\n", strcmp(key, curdict_node->key));
 		if (strcmp(key, curdict_node->key) < 0) {
 			if (curdict_node->l)
 				curdict_node = curdict_node->l;
@@ -240,6 +243,7 @@ dict_node *dict_search(dict *d, char *key) {
 			return curdict_node;
 		}
 	}
+	printf("dict search fail\n");
 	return NULL;
 }
 

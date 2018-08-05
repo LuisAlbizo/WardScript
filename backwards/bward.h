@@ -39,6 +39,7 @@ void yyerror(char *s, ...) {
 
 B_Object *present(stack *args, Scope *S) {
 	B_Object *arg = (B_Object *) stack_pop(args);
+	printf("present: ");
 	while (arg) {
 		switch (arg->type) {
 			case B_BYTE:
@@ -53,6 +54,9 @@ B_Object *present(stack *args, Scope *S) {
 			case B_FUNCTION:
 				printf("<function> ");
 				break;
+			default:
+				printf("<unknown: %d> ", arg->type);
+				break;
 		}
 		arg = (B_Object *) stack_pop(args);
 	}
@@ -64,24 +68,22 @@ B_Object *present(stack *args, Scope *S) {
 
 int main(int argc, char **argv) {
 	if (argc < 2) {
-		perror("Specify a file\n");
+		perror("No input");
 		exit(1);
 	}
 	yyin = fopen(argv[1], "r");
 	if (!yyin) {
-		perror("No file found\n");
+		perror(argv[1]);
 		exit(1);
 	}
 	if (yyparse())
 		exit(33);
-	printf("Succesfull Parse\n");
 
 	Scope *GS = newScope(NULL);
 
 	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&present));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
 	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(9));
-	printf("backward\n");
 
 	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block));
 
