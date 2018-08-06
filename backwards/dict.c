@@ -185,17 +185,14 @@ void rebalance(dict_node *n) {
 /* Dict Functions */
 
 void dict_update(dict *d, char *key, dict_Data *v) {
-	printf("dict update: %s\n", key);
 	/* Update value if key exists else inserts a new key-value on the dict.
 	 */
 	if (!d->root) {
 		d->root = newdict_node(key, v, NULL, NULL, NULL);
 		return;
 	}
-	printf("dict root access\n");
 	dict_node *curdict_node = d->root;
 	while (1) {
-		printf("strcmp: %d\n", strcmp(key, curdict_node->key));
 		if (strcmp(key, curdict_node->key) < 0) {
 			if (curdict_node->l)
 				curdict_node = curdict_node->l;
@@ -220,13 +217,10 @@ void dict_update(dict *d, char *key, dict_Data *v) {
 }
 
 dict_node *dict_search(dict *d, char *key) {
-	printf("dict search: %s\n", key);
 	if (!d->root)
 		return NULL;
-	printf("d->root acces\n");
 	dict_node *curdict_node = d->root;
 	while (1) {
-		printf("cur node: %s\n", curdict_node->key);
 		if (strcmp(key, curdict_node->key) < 0) {
 			if (curdict_node->l)
 				curdict_node = curdict_node->l;
@@ -243,7 +237,6 @@ dict_node *dict_search(dict *d, char *key) {
 			return curdict_node;
 		}
 	}
-	printf("dict search fail\n");
 	return NULL;
 }
 

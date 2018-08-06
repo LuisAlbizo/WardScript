@@ -13,6 +13,7 @@
 #include "evaluator.h"
 
 extern int yylineno;
+extern int yyparse();
 extern FILE *yyin;
 extern st_block *program;
 
@@ -24,16 +25,6 @@ void yyerror(char *s, ...) {
 	vfprintf(stderr, s, ap);
 	fprintf(stderr, "\n"); 
 }
-
-/*int yyparse(char const *filename) {
-	yyin = fopen(filename, "r");
-	if (!yyin) {
-		perror("No file founded\n");
-		exit(1);
-	}
-	
-	return 0;
-}*/
 
 /* Built-in Functions */
 

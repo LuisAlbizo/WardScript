@@ -5,6 +5,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 int lineno = 0;
 
@@ -12,7 +13,7 @@ int lineno = 0;
 
 %%
 
-=: 	return EQ;
+:= 	return EQ;
 \.	return DOT;
 ,	return COMMA;
 :	return COLON;
@@ -27,7 +28,7 @@ int lineno = 0;
 "&&"	return 'A';
 "||"	return 'O';
 "=="	return 'e';
-"=/"	return 'n';
+"/="	return 'n';
 "<"	return 'l';
 "<="	return 'L';
 ">"	return 'g';
@@ -50,14 +51,14 @@ int lineno = 0;
 }
 
 ['"$#a-zA-Z_]['"$#a-zA-Z_0-9]*	{
-	if (strcmp(yytext, "fi") == 0) return IF;
-	else if (strcmp(yytext, "esle") == 0) return ELSE;
-	else if (strcmp(yytext, "neht") == 0) return THEN;
-	else if (strcmp(yytext, "dne") == 0) return END;
-	else if (strcmp(yytext, "noitcnuf") == 0) return FUNCTION;
-	else if (strcmp(yytext, "reverof") == 0) return FOREVER;
-	else if (strcmp(yytext, "tixe") == 0) return EXIT;
-	else if (strcmp(yytext, "nruter") == 0) return RETURN;
+	if (strcmp(yytext, "if") == 0) return IF;
+	else if (strcmp(yytext, "else") == 0) return ELSE;
+	else if (strcmp(yytext, "then") == 0) return THEN;
+	else if (strcmp(yytext, "end") == 0) return END;
+	else if (strcmp(yytext, "function") == 0) return FUNCTION;
+	else if (strcmp(yytext, "wt") == 0) return FOREVER;
+	else if (strcmp(yytext, "exit") == 0) return EXIT;
+	else if (strcmp(yytext, "return") == 0) return RETURN;
 	else {
 		yylval.stat = new_name(yytext);
 		return NAME;
@@ -66,6 +67,7 @@ int lineno = 0;
 
 "\n"	lineno++;
 [ \t]+	;
+. raiseError(SYNTAX_ERROR, "Invalid Token");
 
 %%
 

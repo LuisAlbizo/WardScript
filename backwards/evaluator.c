@@ -48,12 +48,11 @@ st_st *eva_name(st_name *n, Scope *S) {
 st_st *eva_bop(st_bop *bop, Scope *S) {
 	printf("eva BOP: %c\n", bop->op);
 	st_st *result = NULL;
-	bop->left = eva_(bop->left, S);
-	bop->right = eva_(bop->right, S);
-	if ( ((st_object *) bop->left)->obj->type == B_BYTE && ((st_object *) bop->right)->obj->type == B_BYTE ) {
-		unsigned int lnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->left)->obj)->byte;
-		unsigned int rnumber = (unsigned int) ((B_Byte *) ((st_object *) bop->right)->obj)->byte;
-		printf("bop: %d %c %d\n", lnumber, bop->op, rnumber);
+	st_st *left = eva_(bop->left, S);
+	st_st *right = eva_(bop->right, S);
+	if ( ((st_object *) left)->obj->type == B_BYTE && ((st_object *) right)->obj->type == B_BYTE ) {
+		unsigned int lnumber = (unsigned int) ((B_Byte *) ((st_object *) left)->obj)->byte;
+		unsigned int rnumber = (unsigned int) ((B_Byte *) ((st_object *) right)->obj)->byte;
 		switch (bop->op) {
 			case '+':
 				lnumber = lnumber + rnumber;
@@ -105,14 +104,11 @@ st_st *eva_bop(st_bop *bop, Scope *S) {
 				lnumber = lnumber || rnumber;
 				break;
 			default:
-				printf("rare BOP\n");
 				break;
 		}
 		result = new_object(new_bbyte((char) lnumber));
 	} else
 		raiseError(OPERATOR_ERROR, "invalid operation for no-number types");
-	if (!result)
-		printf("BOP NULL result\n");
 	return result;
 }
 
@@ -121,10 +117,10 @@ st_st *eva_bop(st_bop *bop, Scope *S) {
 st_st *eva_uop(st_uop *uop, Scope *S) {
 	printf("eva UOP: %c\n", uop->op);
 	unsigned int rnumber;
-	uop->right = eva_(uop->right, S);
-	switch (((st_object *) uop->right)->obj->type) {
+	st_st *right = eva_(uop->right, S);
+	switch (((st_object *) right)->obj->type) {
 		case B_BYTE:
-			rnumber = (unsigned int) ((B_Byte *) ((st_object *) uop->right)->obj)->byte;
+			rnumber = (unsigned int) ((B_Byte *) ((st_object *) right)->obj)->byte;
 			switch (uop->op) {
 				case '!':
 					rnumber = (rnumber == 0) ? 1 : 0;
@@ -162,13 +158,20 @@ st_st *eva_uop(st_uop *uop, Scope *S) {
 
 st_st *eva_assignment(st_assignment *assi, Scope *S) {
 	printf("eva ASSIGNMENT\n");
-	assign *a = (assign *) stack_pop(assi->assigns);
+	stack_node *nod = assi->assigns->top;
 	B_Object *o;
-	while (a) {
-		o = ((st_object *) eva_(a->value, S))->obj;
-		Scope_Set(S, a->name, (Scope_Object *) o);
-		a = (assign *) stack_pop(assi->assigns);
+	while (nod) {
+		printf("assign eval:\n");
+		o = ((st_object *) eva_(((assign *) nod->data)->value, S))->obj;
+		Scope_Set(S, ((assign *) nod->data)->name, (Scope_Object *) o);
+		printf("assign: %s = %d (", ((assign *) nod->data)->name, o->type);
+		if (o->type == B_BYTE)
+			printf("%d)\n", ((B_Byte *) o)->byte);
+		else
+			printf("non byte)\n");
+		nod = nod->next;
 	}
+	printf("Scope Len: %d\n", avl_len(S->vars->root));
 	return new_st();
 }
 
@@ -207,7 +210,6 @@ st_st *eva_forever(st_forever *rvr, Scope *S) {
 		if (!stat)
 			stat = rvr->block->block->top;
 		s = eva_((st_st *) (stat->data), S);
-		printf("forever eval: %d\n", (int) s->type);
 		if (s->type == AST_EXIT)
 			break;
 		else

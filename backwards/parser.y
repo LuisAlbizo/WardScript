@@ -12,6 +12,8 @@
 
 st_block *program;
 
+extern int yylex();
+
 %}
 
 %union {
@@ -32,12 +34,12 @@ st_block *program;
 
 /* Precedence Rules
 */
-%right DOT EQ COLON
-%right 'A' 'O' /* && || ... Logical Operators */
-%right 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == =/ ... Comparission Operands */
-%right '+' '-' /* + - ... Aritmethic Low Precedence */
-%right '*' '/' '%' /* * / % ... Aritmethic High Precedence */
-%right '^' /* Exponential Higher Precedence */
+%left EQ
+%left 'A' 'O' /* && || ... Logical Operators */
+%left 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == =/ ... Comparission Operands */
+%left '+' '-' /* + - ... Aritmethic Low Precedence */
+%left '*' '/' '%' /* * / % ... Aritmethic High Precedence */
+%left '^' /* Exponential Higher Precedence */
 %nonassoc '!' /* Unary Operators non-associative */
 
 %start program
@@ -46,39 +48,33 @@ st_block *program;
 
 program: block { program = $1;};
 
-block: { $$ = NULL; }
-     | statement
+block: { $$ = (st_block *) new_block(newstack()); }
+     | statement block
      {
-     	stack *sctk = newstack();
-	stack_push(sctk, (stack_Data *) $1);
-     	$$ = (st_block *) new_block(sctk);
-     }
-     | block statement
-     {
-     	$$ = $1;
-	stack_push($$->block, (stack_Data *) $2);
+     	$$ = $2;
+	stack_push($$->block, (stack_Data *) $1);
      }
      ;
 
 statement: expression { $$ = $1; }
-	 | END block THEN expression IF
+	 | IF expression THEN block END
 	 {
-	 	$$ = new_if($4, $2, NULL);
+	 	$$ = new_if($2, $4, (st_block *) new_block(newstack()));
 	 }
-	 | END block ELSE block THEN expression IF
+	 | IF expression THEN block ELSE block END
 	 {
-	 	$$ = new_if($6, $4, $2);
+	 	$$ = new_if($2, $4, $6);
 	 }
-	 | END block FOREVER
+	 | FOREVER block END
 	 {
 	 	$$ = new_forever($2);
 	 }
 	 | assignment { $$ = $1; }
-	 | expression EQ NAME DOT LBRACKET expression RBRACKET
+	 | LBRACKET expression RBRACKET DOT NAME EQ expression
 	 {
-	  	st_member *member = (st_member *) new_member($6, ((st_name *) $3)->name);
-		free($3);
-		$$ = new_member_assign(member, $1);
+	  	st_member *member = (st_member *) new_member($2, ((st_name *) $5)->name);
+		free($5);
+		$$ = new_member_assign(member, $7);
 	 }
 	 | EXIT
 	 {
@@ -87,49 +83,46 @@ statement: expression { $$ = $1; }
 	 }
 	 ;
 
-assignment: expression EQ NAME
+assignment: NAME EQ expression
 	  {
 	  	char name[MAX_DICT_KEY];
-		strncpy(name, ((st_name *) $3)->name, MAX_DICT_KEY);
-		assign *a = new_assign(name, $1);
-		free_st($3);
+		strncpy(name, ((st_name *) $1)->name, MAX_DICT_KEY);
+		assign *a = new_assign(name, $3);
+		free_st($1);
 		stack *s = newstack();
 		stack_push(s, (stack_Data *) a);
 		$$ = new_assignment(s);
 	  }
-	  | assignment COMMA expression EQ NAME
+	  | NAME EQ expression COMMA assignment
 	  {
-		$$ = $1;
+		$$ = $5;
 	  	char name[MAX_DICT_KEY];
-		strncpy(name, ((st_name *) $5)->name, MAX_DICT_KEY);
+		strncpy(name, ((st_name *) $1)->name, MAX_DICT_KEY);
 		assign *a = new_assign(name, $3);
-		free_st($3);
-		free_st($5);
 		stack_push(((st_assignment *) $$)->assigns, (stack_Data *) a);
 	  }
 	  ;
 
 expression: NUMBER { $$ = $1; }
 	  | NAME { $$ = $1; }
-	  | LPARENT args RPARENT LBRACKET expression RBRACKET
+	  | LPARENT expression RPARENT { $$ = $2; }
+	  | LBRACKET expression RBRACKET LPARENT args RPARENT
 	  {
-	  	$$ = new_call($5, $2);
+	  	$$ = new_call($2, $5);
 	  }
-	  | NAME DOT LBRACKET expression RBRACKET
+	  | LBRACKET expression RBRACKET DOT NAME
 	  {
-	  	$$ = new_member($4, ((st_name *) $1)->name);
-		free($1);
+	  	$$ = new_member($2, ((st_name *) $5)->name);
+		free($5);
 	  }
-	  | LPARENT args RPARENT NAME COLON LBRACKET expression RBRACKET
+	  | LBRACKET expression RBRACKET COLON NAME LPARENT args RPARENT
 	  {
-	  	$$ = new_methodcall($7, ((st_name *) $4)->name, $2);
-		free($4);
+	  	$$ = new_methodcall($2, ((st_name *) $5)->name, $7);
+		free($5);
 	  }
-	  | END block COLON names FUNCTION NAME RETURN
+	  | RETURN NAME FUNCTION names COLON block END
 	  {
-	  	$$ = new_object(new_bfunction(((st_name *) $6)->name, $4, ((st_block *) $2)->block));
-		free($2);
-		free($6);
+	  	$$ = new_object(new_bfunction(((st_name *) $2)->name, $4, ((st_block *) $6)->block));
 	  }
 	  | LBRACE assignment RBRACE
 	  {
@@ -140,55 +133,55 @@ expression: NUMBER { $$ = $1; }
 
 expression: expression '+' expression
 	  {
-	  	$$ = new_bop('+', $3, $1);
+	  	$$ = new_bop('+', $1, $3);
 	  }
 	  | expression '-' expression
 	  {
-	  	$$ = new_bop('-', $3, $1);
+	  	$$ = new_bop('-', $1, $3);
 	  }
 	  | expression '*' expression
 	  {
-	  	$$ = new_bop('*', $3, $1);
+	  	$$ = new_bop('*', $1, $3);
 	  }
 	  | expression '/' expression
 	  {
-	  	$$ = new_bop('/', $3, $1);
+	  	$$ = new_bop('/', $1, $3);
 	  }
 	  | expression '%' expression
 	  {
-	  	$$ = new_bop('%', $3, $1);
+	  	$$ = new_bop('%', $1, $3);
 	  }
 	  | expression '^' expression
 	  {
-	  	$$ = new_bop('^', $3, $1);
+	  	$$ = new_bop('^', $1, $3);
 	  }
 	  | expression 'g' expression
 	  {
-	  	$$ = new_bop('g', $3, $1);
+	  	$$ = new_bop('g', $1, $3);
 	  }
 	  | expression 'G' expression
 	  {
-	  	$$ = new_bop('G', $3, $1);
+	  	$$ = new_bop('G', $1, $3);
 	  }
 	  | expression 'l' expression
 	  {
-	  	$$ = new_bop('l', $3, $1);
+	  	$$ = new_bop('l', $1, $3);
 	  }
 	  | expression 'L' expression
 	  {
-	  	$$ = new_bop('L', $3, $1);
+	  	$$ = new_bop('L', $1, $3);
 	  }
 	  | expression 'e' expression
 	  {
-	  	$$ = new_bop('e', $3, $1);
+	  	$$ = new_bop('e', $1, $3);
 	  }
 	  | expression 'n' expression
 	  {
-	  	$$ = new_bop('n', $3, $1);
+	  	$$ = new_bop('n', $1, $3);
 	  }
-	  | expression '!' 
+	  | '!' expression
 	  {
-	  	$$ = new_uop('!', $1);
+	  	$$ = new_uop('!', $2);
 	  }
 	  ;
 
