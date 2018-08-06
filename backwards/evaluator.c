@@ -31,7 +31,6 @@ B_Object *to_bool(B_Object *o) {
 }
 
 st_st *eva_name(st_name *n, Scope *S) {
-	printf("eva NAME: %s\n", n->name);
 	Scope_Object *o = Scope_Get(S, n->name);
 	if (!o) {
 		char e[200];
@@ -46,13 +45,12 @@ st_st *eva_name(st_name *n, Scope *S) {
 /* BOP */
 
 st_st *eva_bop(st_bop *bop, Scope *S) {
-	printf("eva BOP: %c\n", bop->op);
 	st_st *result = NULL;
-	st_st *left = eva_(bop->left, S);
-	st_st *right = eva_(bop->right, S);
-	if ( ((st_object *) left)->obj->type == B_BYTE && ((st_object *) right)->obj->type == B_BYTE ) {
-		unsigned int lnumber = (unsigned int) ((B_Byte *) ((st_object *) left)->obj)->byte;
-		unsigned int rnumber = (unsigned int) ((B_Byte *) ((st_object *) right)->obj)->byte;
+	B_Object *left = ((st_object *) eva_(bop->left, S))->obj;
+	B_Object *right = ((st_object *) eva_(bop->right, S))->obj;
+	if (left->type == B_BYTE && right->type == B_BYTE) {
+		unsigned int lnumber = (unsigned int) ((B_Byte *) left)->byte;
+		unsigned int rnumber = (unsigned int) ((B_Byte *) right)->byte;
 		switch (bop->op) {
 			case '+':
 				lnumber = lnumber + rnumber;
@@ -107,15 +105,15 @@ st_st *eva_bop(st_bop *bop, Scope *S) {
 				break;
 		}
 		result = new_object(new_bbyte((char) lnumber));
-	} else
+	} else {
 		raiseError(OPERATOR_ERROR, "invalid operation for no-number types");
+	}
 	return result;
 }
 
 /* UOP */
 
 st_st *eva_uop(st_uop *uop, Scope *S) {
-	printf("eva UOP: %c\n", uop->op);
 	unsigned int rnumber;
 	st_st *right = eva_(uop->right, S);
 	switch (((st_object *) right)->obj->type) {
@@ -147,8 +145,14 @@ st_st *eva_uop(st_uop *uop, Scope *S) {
 					break;
 			}
 			break;
-		default:
-			raiseError(OPERATOR_ERROR, "invalid unary operator for node type");
+		case B_NODE:
+			switch (uop->op) {
+				case '!':
+					rnumber = 0;
+					break;
+				default:
+					break;
+			}
 			break;
 	}
 	return new_object(new_bbyte((char) rnumber));
@@ -157,35 +161,26 @@ st_st *eva_uop(st_uop *uop, Scope *S) {
 /* ASSIGNMENT */
 
 st_st *eva_assignment(st_assignment *assi, Scope *S) {
-	printf("eva ASSIGNMENT\n");
 	stack_node *nod = assi->assigns->top;
 	B_Object *o;
 	while (nod) {
-		printf("assign eval:\n");
 		o = ((st_object *) eva_(((assign *) nod->data)->value, S))->obj;
 		Scope_Set(S, ((assign *) nod->data)->name, (Scope_Object *) o);
-		printf("assign: %s = %d (", ((assign *) nod->data)->name, o->type);
-		if (o->type == B_BYTE)
-			printf("%d)\n", ((B_Byte *) o)->byte);
-		else
-			printf("non byte)\n");
+
 		nod = nod->next;
 	}
-	printf("Scope Len: %d\n", avl_len(S->vars->root));
 	return new_st();
 }
 
 /* IF */
 
 st_st *eva_if(st_if *ifst, Scope *S) {
-	printf("eva IF\n");
 	B_Object *cond = to_bool(((st_object *) eva_(ifst->condition, S))->obj);
 	st_block *blck = (((B_Byte *) cond)->byte ? ifst->block_if : ifst->block_else);
 	//free(cond);
 	st_st *ex = new_st();
 	if (!blck) {
 		return ex;
-		printf("null block on if\n");
 	}
 	stack_node *stat = blck->block->top;
 	while (stat) {
@@ -201,7 +196,6 @@ st_st *eva_if(st_if *ifst, Scope *S) {
 /* FOREVER */
 
 st_st *eva_forever(st_forever *rvr, Scope *S) {
-	printf("eva FOREVER\n");
 	if (!rvr->block)
 		raiseError(LOOP_ERROR, "infinite loop detected");
 	stack_node *stat = rvr->block->block->top;
@@ -221,7 +215,6 @@ st_st *eva_forever(st_forever *rvr, Scope *S) {
 /* CALL */
 
 st_st *eva_call(st_call *call, Scope *S) {
-	printf("eva CALL\n");
 	B_Function *f = (B_Function *) ((st_object *) eva_(call->callable, S))->obj;
 	//B_Function *f = (B_Function *) call->callable;
 	if (f->type != B_FUNCTION)
@@ -232,9 +225,7 @@ st_st *eva_call(st_call *call, Scope *S) {
 	stack_node *argval;
 	switch (f->ftype) {
 		case B_FUNCTYPE:
-			printf("eva B_Function\n");
 			// Setting the arguments on the FScope
-			printf("argnames: %d, args: %d\n", f->argnames->count, call->args->count);
 			if (f->argnames->count != call->args->count)
 				raiseError(ARGCOUNT_ERROR, "");
 			argval = call->args->top;
@@ -248,7 +239,6 @@ st_st *eva_call(st_call *call, Scope *S) {
 			// Evaluating the code of the function
 			if (f->code_block) {
 				stat = f->code_block->top;
-				printf("evaluating...\n");
 				while (stat) {
 					if (eva_((st_st *) stat->data, FS)->type == AST_EXIT) break;
 					else stat = stat->next;
@@ -259,23 +249,18 @@ st_st *eva_call(st_call *call, Scope *S) {
 				raiseError(UNDECLARED_ERROR, "return name not declared");
 			break;
 		case C_FUNCTYPE:;
-			printf("eva C_Function\n");
 			stack *evalargs = newstack(), *passargs = newstack();
 			stack_Data *arg = stack_pop(call->args);
-			printf("traspassing args...\n");
 			int i = 0;
 			while (arg) {
-				printf("%d\n", ++i);
 				stack_push(evalargs, arg);
 				arg = stack_pop(call->args);
 			}
-			printf("evaling args...\n");
 			arg = stack_pop(evalargs);
 			while (arg) {
 				stack_push(call->args, arg);
 				stack_push(passargs, 
 						(stack_Data *) ((st_object *) eva_((st_st *) arg, S))->obj);
-				printf("%d: %d\n", i--, passargs->top->data->type);
 				arg = stack_pop(evalargs);
 			}
 			return_obj = f->cfunc(passargs, FS);
@@ -287,7 +272,6 @@ st_st *eva_call(st_call *call, Scope *S) {
 /* METHODCALL */
 
 st_st *eva_methodcall(st_methodcall *mcall, Scope *S) {
-	printf("eva METHODCALL\n");
 	st_call *call;
 	B_Object *o = ((st_object *) eva_(mcall->object, S))->obj;
 	if (o->type != B_NODE)
@@ -303,17 +287,17 @@ st_st *eva_methodcall(st_methodcall *mcall, Scope *S) {
 /* NODE CONSTRUCT */
 
 st_st *eva_node_construct(st_node_construct *nodecons, Scope *S) {
-	printf("eva NODE CONSTRUCT\n");
 	// create the member's dict for the node
 	dict *members = newdict();
 	// get the first assign
-	assign *member = (assign *) stack_pop(((st_assignment *) nodecons->members)->assigns);
+	stack_node *member = ((st_assignment *) nodecons->members)->assigns->top;
+	assign *assi;
 	while (member) { // while the stack still have assigns left
+		assi = (assign *) member->data;
 		// set the name and evaluate the value
-		dict_update(members, member->name, (dict_Data *) ((st_object *) eva_(member->value, S))->obj);
-		free(member); // free the memory because is not needed
+		dict_update(members, assi->name, (dict_Data *) ((st_object *) eva_(assi->value, S))->obj);
 		// get the next assign
-		member = (assign *) stack_pop(((st_assignment *) nodecons->members)->assigns);
+		member = member->next;
 	}
 	return new_object(new_bnode(members));
 }
@@ -321,7 +305,6 @@ st_st *eva_node_construct(st_node_construct *nodecons, Scope *S) {
 /* MEMBER */
 
 st_st *eva_member(st_member *member, Scope *S) {
-	printf("eva MEMBER\n");
 	B_Object *o = ((st_object *) eva_(member->object, S))->obj;
 	if (o->type != B_NODE)
 		raiseError(TYPE_ERROR, "only Node Objects had members");
@@ -333,7 +316,6 @@ st_st *eva_member(st_member *member, Scope *S) {
 /* MEMBER ASSIGN */
 
 st_st *eva_member_assign(st_member_assign *massign, Scope *S) {
-	printf("eva MEMBER_ASSIGN\n");
 	B_Object *o = ((st_object *) eva_(massign->member->object, S))->obj;
 	if (o->type != B_NODE)
 		raiseError(TYPE_ERROR, "only can assign a member of a Node Object");
@@ -346,7 +328,6 @@ st_st *eva_member_assign(st_member_assign *massign, Scope *S) {
 st_st *eva_(st_st *stat, Scope *S) {
 	if (!stat)
 		return NULL;
-	printf("eva _ (%i)\n", stat->type);
 	st_st *ret = NULL;
 	switch (stat->type) {
 		case AST_EXIT:

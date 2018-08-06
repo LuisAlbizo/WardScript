@@ -30,7 +30,6 @@ void yyerror(char *s, ...) {
 
 B_Object *present(stack *args, Scope *S) {
 	B_Object *arg = (B_Object *) stack_pop(args);
-	printf("present: ");
 	while (arg) {
 		switch (arg->type) {
 			case B_BYTE:

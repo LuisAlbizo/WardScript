@@ -20,17 +20,13 @@ B_Object *new_bnode(dict *d) {
 }
 
 dict_Data *Bnode_Get(B_Node *n, char *key) {
-	printf("Node Get:\n");
 	dict_node *dn = dict_search(n->members, key);
-	printf("Node Get.\n");
 	if (!dn) {
-		printf("member not found.....\n");
 		char errorm[300] = "";
 		strncpy(errorm, "node has no member called: ", 100);
 		strncat(errorm, key, 200);
 		raiseError(UNDECLARED_ERROR, errorm);
 	}
-	printf("gonna return data\n");
 	return dn->data;
 }
 
@@ -69,7 +65,6 @@ B_Object *new_bbyte(char n) {
 /* Function */
 
 B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
-	printf("new B Function\n");
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function");
@@ -82,7 +77,6 @@ B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
 }
 
 B_Object *new_cfunction(B_Object* (*cfunc)(stack *, Scope *)) {
-	printf("new C Function\n");
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object C Function");
