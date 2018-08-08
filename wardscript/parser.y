@@ -23,7 +23,7 @@ extern int yylex();
 }
 
 %token EQ
-%token DOT COMMA COLON
+%token DOT COMMA COLON SEMICOLON
 %token LPARENT RPARENT LBRACKET RBRACKET LBRACE RBRACE
 %token IF THEN ELSE END FOREVER EXIT FUNCTION RETURN
 %token <stat> NAME NUMBER STRING
@@ -40,7 +40,7 @@ extern int yylex();
 %left '*' '/' '%' /* * / % ... Aritmethic High Precedence */
 %left '^' /* Exponential Higher Precedence */
 %nonassoc '!' /* Unary Operators non-associative */
-%nonassoc LPARENT 
+%nonassoc LPARENT DOT COLON
 
 %start program
 
@@ -56,7 +56,7 @@ block: { $$ = (st_block *) new_block(newstack()); }
      }
      ;
 
-statement: expression { $$ = $1; }
+statement: expression SEMICOLON { $$ = $1; }
 	 | IF expression THEN block END
 	 {
 	 	$$ = new_if($2, $4, (st_block *) new_block(newstack()));
@@ -69,14 +69,14 @@ statement: expression { $$ = $1; }
 	 {
 	 	$$ = new_forever($2);
 	 }
-	 | assignment { $$ = $1; }
-	 | LBRACKET expression RBRACKET DOT NAME EQ expression
+	 | assignment SEMICOLON { $$ = $1; }
+	 | expression DOT NAME EQ expression SEMICOLON
 	 {
-	  	st_member *member = (st_member *) new_member($2, ((st_name *) $5)->name);
-		free($5);
-		$$ = new_member_assign(member, $7);
+	  	st_member *member = (st_member *) new_member($1, ((st_name *) $3)->name);
+		free($3);
+		$$ = new_member_assign(member, $5);
 	 }
-	 | EXIT
+	 | EXIT SEMICOLON
 	 {
 	 	$$ = new_st();
 		$$->type = AST_EXIT;
@@ -107,19 +107,19 @@ expression: NUMBER { $$ = $1; }
 	  | NAME { $$ = $1; }
 	  | STRING { $$ = $1; }
 	  | LPARENT expression RPARENT { $$ = $2; }
-	  | LBRACKET expression RBRACKET LPARENT args RPARENT
+	  | expression LPARENT args RPARENT
 	  {
-	  	$$ = new_call($2, $5);
+	  	$$ = new_call($1, $3);
 	  }
-	  | LBRACKET expression RBRACKET DOT NAME
+	  | expression DOT NAME
 	  {
-	  	$$ = new_member($2, ((st_name *) $5)->name);
-		free($5);
+	  	$$ = new_member($1, ((st_name *) $3)->name);
+		free($3);
 	  }
-	  | LBRACKET expression RBRACKET COLON NAME LPARENT args RPARENT
+	  | expression COLON NAME LPARENT args RPARENT
 	  {
-	  	$$ = new_methodcall($2, ((st_name *) $5)->name, $7);
-		free($5);
+	  	$$ = new_methodcall($1, ((st_name *) $3)->name, $5);
+		free($3);
 	  }
 	  | RETURN NAME FUNCTION names COLON block END
 	  {
@@ -129,6 +129,11 @@ expression: NUMBER { $$ = $1; }
 	  {
 	  	// Node
 		$$ = new_node_construct((st_assignment *) $2);
+	  }
+	  | LBRACKET args RBRACKET
+	  {
+	  	// List
+		$$ = new_list_construct($2);
 	  }
 	  ;
 

@@ -302,6 +302,24 @@ st_st *eva_node_construct(st_node_construct *nodecons, Scope *S) {
 	return new_object(new_bnode(members));
 }
 
+/* LIST CONSTRUCT */
+
+st_st *eva_list_construct(st_list_construct *lc, Scope *S) {
+	stack *evalitems = newstack(), *passitems = newstack();
+	stack_Data *item = stack_pop(lc->items);
+	while (item) {
+		stack_push(evalitems, item);
+		item = stack_pop(lc->items);
+	}
+	item = stack_pop(evalitems);
+	while (item) {
+		stack_push(lc->items, item);
+		stack_push(passitems, (stack_Data *) ((st_object *) eva_((st_st *) item, S))->obj);
+		item = stack_pop(evalitems);
+	}
+	return new_object(new_List(passitems));
+}
+
 /* MEMBER */
 
 st_st *eva_member(st_member *member, Scope *S) {
@@ -347,6 +365,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 			break;
 		case AST_NODE_C:
 			ret = eva_node_construct((st_node_construct *) stat, S);
+			break;
+		case AST_LIST_C:
+			ret = eva_list_construct((st_list_construct *) stat, S);
 			break;
 		case AST_MEMBER:
 			ret = eva_member((st_member *) stat, S);

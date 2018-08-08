@@ -61,6 +61,14 @@ B_Object *print(stack *args, Scope *S) {
 			case B_BYTE:
 				printf("%c", ((B_Byte *) arg)->byte);
 				break;
+			case B_NODE:;
+				B_Node *chr = (B_Node *) arg;
+				while (1) {
+					if (chr->type != B_NODE)
+						break;
+					printf("%c", ((B_Byte *) Bnode_Get(chr, "$char"))->byte);
+					chr = (B_Node *) Bnode_Get(chr, "$next");
+				}
 			default:
 				break;
 		}
@@ -70,23 +78,17 @@ B_Object *print(stack *args, Scope *S) {
 }
 
 B_Object *import(stack *args, Scope *S) {
-	B_Object *arg = (B_Object *) stack_pop(args);
 	char fname[129];
 	int i = 0;
+	B_Node *chr = (B_Node *) stack_pop(args);
 	while (i <= 128) {
-		if (!arg)
+		if (chr->type != B_NODE)
 			break;
-		switch (arg->type) {
-			case B_BYTE:
-				fname[i++] = ((B_Byte *) arg)->byte;
-				break;
-			default:
-				break;
-		}
-		arg = (B_Object *) stack_pop(args);
+		fname[i++] = ((B_Byte *) Bnode_Get(chr, "$char"))->byte;
+		chr = (B_Node *) Bnode_Get(chr, "$next");
 	}
 	fname[i] = '\0';
-
+	
 	yyin = fopen(fname, "r");
 	if (!yyin) {
 		perror(fname);

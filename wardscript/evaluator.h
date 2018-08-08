@@ -37,6 +37,8 @@ st_st *eva_call(st_call *, Scope *);
 st_st *eva_methodcall(st_methodcall *, Scope *);
 /* NODE CONSTRUCT */
 st_st *eva_node_construct(st_node_construct *, Scope *);
+/* LIST CONSTRUCT */
+st_st *eva_list_construct(st_list_construct *, Scope *);
 /* MEMBER */
 st_st *eva_member(st_member *, Scope *);
 /* MEMBER ASSIGN */

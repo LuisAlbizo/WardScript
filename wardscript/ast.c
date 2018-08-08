@@ -82,6 +82,13 @@ st_st *new_node_construct(st_assignment *mems) {
 	return (st_st *) nc;
 }
 
+st_st *new_list_construct(stack *items) {
+	st_list_construct *nl = astalloc(sizeof(st_list_construct));
+	nl->type = AST_LIST_C;
+	nl->items = items;
+	return (st_st *) nl;
+}
+
 st_st *new_member(st_st *obj, char *mname) {
 	st_member *m = astalloc(sizeof(st_member));
 	m->type = AST_MEMBER;

@@ -24,7 +24,8 @@
 #define AST_NAME	12
 #define AST_NAMES	13
 #define AST_NODE_C	14
-#define AST_OBJECT	15
+#define AST_LIST_C	15
+#define AST_OBJECT	16
 
 /* AST struct definition for each type of statement
 */
@@ -75,6 +76,11 @@ struct call {
 struct node_c {
 	unsigned int type; // AST_NODE_C
 	struct assignment *members;
+};
+
+struct list_c {
+	unsigned int type; // AST_LIST_C
+	stack *items;
 };
 
 struct member {
@@ -128,6 +134,7 @@ typedef struct name		st_name;
 typedef struct call		st_call;
 typedef struct member		st_member;
 typedef struct node_c		st_node_construct;
+typedef struct list_c		st_list_construct;
 typedef struct member_a		st_member_assign;
 typedef struct methodcall	st_methodcall;
 typedef struct argnames		st_argnames;
@@ -150,6 +157,7 @@ st_st *new_uop(char, st_st *);
 st_st *new_name(char *);
 st_st *new_call(st_st *, stack *);
 st_st *new_node_construct(st_assignment *);
+st_st *new_list_construct(stack *);
 st_st *new_member(st_st *, char *);
 st_st *new_member_assign(st_member *, st_st *);
 st_st *new_methodcall(st_st *, char *, stack *);

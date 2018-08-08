@@ -17,6 +17,7 @@ int lineno = 0;
 \.	return DOT;
 ,	return COMMA;
 :	return COLON;
+;	return SEMICOLON;
 \?[^?]*\?	;
 \".*\"	{
 	char *str = calloc(strlen(yytext) - 1, sizeof(char));

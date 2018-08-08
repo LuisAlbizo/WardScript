@@ -108,16 +108,34 @@ B_Object *new_string(const char *str) {
 	return (B_Object *) stroot;
 }
 
-/* Pseudo-List 
+/* Pseudo-List */
 
 B_Object *new_ListItem(B_Object *data) {
-
+	dict *m = newdict();
+	B_Object *n = new_bnil();
+	dict_update(m, "$data", (dict_Data *) data);
+	dict_update(m, "$next", (dict_Data *) n);
+	return new_bnode(m);
 }
 
 B_Object *new_List(stack *objects) {
-
+	B_Object *item = (B_Object *) stack_pop(objects);
+	dict *m = newdict();
+	B_Node *l = (B_Node *) new_bnode(m);
+	if (!item) {
+		dict_update(m, "$root", (dict_Data *) new_bnil());
+		return (B_Object *) l;
+	} else
+		dict_update(m, "$root", (dict_Data *) new_ListItem(item));
+	B_Node *tail = (B_Node *) Bnode_Get(l, "$root");
+	item = (B_Object *) stack_pop(objects);
+	while (item) {
+		Bnode_Set(tail, "$next", (dict_Data *) new_ListItem(item));
+		tail = (B_Node *) Bnode_Get(tail, "$next");
+		item = (B_Object *) stack_pop(objects);
+	}
+	return (B_Object *) l;
 }
-*/
 
 void free_obj(B_Object *o) {
 	free(o);
