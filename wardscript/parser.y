@@ -26,7 +26,7 @@ extern int yylex();
 %token DOT COMMA COLON
 %token LPARENT RPARENT LBRACKET RBRACKET LBRACE RBRACE
 %token IF THEN ELSE END FOREVER EXIT FUNCTION RETURN
-%token <stat> NAME NUMBER
+%token <stat> NAME NUMBER STRING
 
 %type <stat> expression assignment statement
 %type <block> block program
@@ -34,13 +34,13 @@ extern int yylex();
 
 /* Precedence Rules
 */
-%left EQ
 %left 'A' 'O' /* && || ... Logical Operators */
 %left 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == =/ ... Comparission Operands */
 %left '+' '-' /* + - ... Aritmethic Low Precedence */
 %left '*' '/' '%' /* * / % ... Aritmethic High Precedence */
 %left '^' /* Exponential Higher Precedence */
 %nonassoc '!' /* Unary Operators non-associative */
+%nonassoc LPARENT 
 
 %start program
 
@@ -105,6 +105,7 @@ assignment: NAME EQ expression
 
 expression: NUMBER { $$ = $1; }
 	  | NAME { $$ = $1; }
+	  | STRING { $$ = $1; }
 	  | LPARENT expression RPARENT { $$ = $2; }
 	  | LBRACKET expression RBRACKET LPARENT args RPARENT
 	  {
@@ -185,7 +186,7 @@ expression: expression '+' expression
 	  }
 	  ;
 
-args: { $$ = newstack(); printf("empty args\n"); }
+args: { $$ = newstack(); }
     | expression
     {
     	$$ = newstack();

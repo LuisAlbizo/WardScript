@@ -1,6 +1,6 @@
 
 install: parser stack dict object eval scope ast error
-	cc *.o parser.tab.c lex.yy.c -o bwar -lfl
+	cc *.o parser.tab.c lex.yy.c -o ward -lfl
 	make clean
 
 eval: evaluator.c evaluator.h

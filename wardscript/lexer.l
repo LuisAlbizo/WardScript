@@ -18,6 +18,18 @@ int lineno = 0;
 ,	return COMMA;
 :	return COLON;
 \?[^?]*\?	;
+\".*\"	{
+	char *str = calloc(strlen(yytext) - 1, sizeof(char));
+	if (!str)
+		raiseError(MEMORY_ERROR, "can't create new string");
+	int i;
+	for (i = 1; yytext[i] != '"'; i++) {
+		str[i-1] = yytext[i];
+	}
+	str[i] = '\0';
+	yylval.stat = new_object(new_string(str));
+	return STRING;
+}
 
 "+"	return '+';
 "-"	return '-';
@@ -50,7 +62,7 @@ int lineno = 0;
 	return NUMBER;
 }
 
-['"$#a-zA-Z_]['"$#a-zA-Z_0-9]*	{
+['$#a-zA-Z_]['$#a-zA-Z_0-9]*	{
 	if (strcmp(yytext, "if") == 0) return IF;
 	else if (strcmp(yytext, "else") == 0) return ELSE;
 	else if (strcmp(yytext, "then") == 0) return THEN;

@@ -1,4 +1,4 @@
-/* Default BackWard Interpreter configuration file: bward.h
+/* Default Ward Interpreter configuration file: bward.h
  *
  */
 #ifndef bward_h
@@ -54,6 +54,56 @@ B_Object *present(stack *args, Scope *S) {
 	return new_bnil();
 }
 
+B_Object *print(stack *args, Scope *S) {
+	B_Object *arg = (B_Object *) stack_pop(args);
+	while (arg) {
+		switch (arg->type) {
+			case B_BYTE:
+				printf("%c", ((B_Byte *) arg)->byte);
+				break;
+			default:
+				break;
+		}
+		arg = (B_Object *) stack_pop(args);
+	}
+	return new_bnil();
+}
+
+B_Object *import(stack *args, Scope *S) {
+	B_Object *arg = (B_Object *) stack_pop(args);
+	char fname[129];
+	int i = 0;
+	while (i <= 128) {
+		if (!arg)
+			break;
+		switch (arg->type) {
+			case B_BYTE:
+				fname[i++] = ((B_Byte *) arg)->byte;
+				break;
+			default:
+				break;
+		}
+		arg = (B_Object *) stack_pop(args);
+	}
+	fname[i] = '\0';
+
+	yyin = fopen(fname, "r");
+	if (!yyin) {
+		perror(fname);
+		exit(13);
+	}
+	if (yyparse())
+		exit(33);
+
+	Scope *MS = newScope(S);
+
+	st_st *modfunc = new_object(new_bfunction("module$", newstack(), program->block));
+
+	B_Object *module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
+
+	return module;
+}
+
 /* Global Scope */
 
 int main(int argc, char **argv) {
@@ -64,7 +114,7 @@ int main(int argc, char **argv) {
 	yyin = fopen(argv[1], "r");
 	if (!yyin) {
 		perror(argv[1]);
-		exit(1);
+		exit(13);
 	}
 	if (yyparse())
 		exit(33);
@@ -72,8 +122,10 @@ int main(int argc, char **argv) {
 	Scope *GS = newScope(NULL);
 
 	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&present));
+	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&print));
+	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&import));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
-	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(9));
+	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));
 
 	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block));
 

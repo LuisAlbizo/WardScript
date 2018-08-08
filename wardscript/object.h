@@ -73,6 +73,18 @@ B_Object *new_bbyte(char);
 B_Object *new_bfunction(char *, stack *, stack *);
 B_Object *new_cfunction(B_Object* (*)(stack *, Scope *));
 
+/* Pseudo-String */
+
+B_Object *new_char(char);
+B_Object *new_string(const char *);
+
+/* Pseudo-List
+
+B_Object *new_ListItem(B_Object *);
+B_Object *new_List(stack *);
+
+*/
+
 void free_obj(B_Object *);
 
 #endif

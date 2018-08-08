@@ -5,6 +5,7 @@
 #include "object.h"
 #include "dict.h"
 #include "error.h"
+#include "stack.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -85,6 +86,38 @@ B_Object *new_cfunction(B_Object* (*cfunc)(stack *, Scope *)) {
 	f->cfunc = cfunc;
 	return (B_Object *) f;
 }
+
+/* Pseudo-String */
+
+B_Object *new_char(char chr) {
+	dict *m = newdict();
+	B_Object *b = new_bbyte(chr);
+	B_Object *n = new_bnil();
+	dict_update(m, "$char", (dict_Data *) b);
+	dict_update(m, "$next", (dict_Data *) n);
+	return new_bnode(m);
+}
+
+B_Object *new_string(const char *str) {
+	B_Node *stroot = (B_Node *) new_char(str[0]);
+	B_Node *tail = stroot;
+	for (int i = 1; str[i] != '\0'; i++) {
+		Bnode_Set(tail, "$next", (dict_Data *) new_char(str[i]));
+		tail = (B_Node *) Bnode_Get(tail, "$next");
+	}
+	return (B_Object *) stroot;
+}
+
+/* Pseudo-List 
+
+B_Object *new_ListItem(B_Object *data) {
+
+}
+
+B_Object *new_List(stack *objects) {
+
+}
+*/
 
 void free_obj(B_Object *o) {
 	free(o);
