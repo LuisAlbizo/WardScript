@@ -25,7 +25,7 @@ extern int yylex();
 %token EQ
 %token DOT COMMA COLON SEMICOLON
 %token LPARENT RPARENT LBRACKET RBRACKET LBRACE RBRACE
-%token IF THEN ELSE END FOREVER EXIT FUNCTION RETURN
+%token IF THEN ELSE END FOREVER EXIT FUNCTION
 %token <stat> NAME NUMBER STRING
 
 %type <stat> expression assignment statement
@@ -121,9 +121,9 @@ expression: NUMBER { $$ = $1; }
 	  	$$ = new_methodcall($1, ((st_name *) $3)->name, $5);
 		free($3);
 	  }
-	  | RETURN NAME FUNCTION names COLON block END
+	  | FUNCTION names COLON NAME COLON block END
 	  {
-	  	$$ = new_object(new_bfunction(((st_name *) $2)->name, $4, ((st_block *) $6)->block));
+	  	$$ = new_object(new_bfunction(((st_name *) $4)->name, $2, ((st_block *) $6)->block));
 	  }
 	  | LBRACE assignment RBRACE
 	  {
@@ -184,6 +184,14 @@ expression: expression '+' expression
 	  | expression 'n' expression
 	  {
 	  	$$ = new_bop('n', $1, $3);
+	  }
+	  | expression 'A' expression
+	  {
+	  	$$ = new_bop('A', $1, $3);
+	  }
+	  | expression 'O' expression
+	  {
+	  	$$ = new_bop('O', $1, $3);
 	  }
 	  | '!' expression
 	  {
