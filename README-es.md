@@ -16,11 +16,19 @@ WardScript pretende ser 2 cosas:
 
 Instalacion en Linux:
 
-` make `
+`git clone https://github.com/LuisAlbizo/WardScript`
+`cd WardScript/src`
+`make && make install`
+`make clean`
 
 ## Licencia
 
 Este codigo esta licenciado bajo la MIT License.
+
+## Sintaxis Basica
+
+
+
 
 ## Autor
 

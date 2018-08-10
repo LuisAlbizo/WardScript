@@ -36,9 +36,8 @@ extern int yylex();
 */
 %left 'A' 'O' /* && || ... Logical Operators */
 %left 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == =/ ... Comparission Operands */
-%left '+' '-' /* + - ... Aritmethic Low Precedence */
-%left '*' '/' '%' /* * / % ... Aritmethic High Precedence */
-%left '^' /* Exponential Higher Precedence */
+%left '+' '-' /* + - ... Aritmethic High Precedence */
+%left '<' '>' /* << >> ... Aritmethic Low Precedence */
 %nonassoc '!' /* Unary Operators non-associative */
 %nonassoc LPARENT DOT COLON
 
@@ -137,66 +136,19 @@ expression: NUMBER { $$ = $1; }
 	  }
 	  ;
 
-expression: expression '+' expression
-	  {
-	  	$$ = new_bop('+', $1, $3);
-	  }
-	  | expression '-' expression
-	  {
-	  	$$ = new_bop('-', $1, $3);
-	  }
-	  | expression '*' expression
-	  {
-	  	$$ = new_bop('*', $1, $3);
-	  }
-	  | expression '/' expression
-	  {
-	  	$$ = new_bop('/', $1, $3);
-	  }
-	  | expression '%' expression
-	  {
-	  	$$ = new_bop('%', $1, $3);
-	  }
-	  | expression '^' expression
-	  {
-	  	$$ = new_bop('^', $1, $3);
-	  }
-	  | expression 'g' expression
-	  {
-	  	$$ = new_bop('g', $1, $3);
-	  }
-	  | expression 'G' expression
-	  {
-	  	$$ = new_bop('G', $1, $3);
-	  }
-	  | expression 'l' expression
-	  {
-	  	$$ = new_bop('l', $1, $3);
-	  }
-	  | expression 'L' expression
-	  {
-	  	$$ = new_bop('L', $1, $3);
-	  }
-	  | expression 'e' expression
-	  {
-	  	$$ = new_bop('e', $1, $3);
-	  }
-	  | expression 'n' expression
-	  {
-	  	$$ = new_bop('n', $1, $3);
-	  }
-	  | expression 'A' expression
-	  {
-	  	$$ = new_bop('A', $1, $3);
-	  }
-	  | expression 'O' expression
-	  {
-	  	$$ = new_bop('O', $1, $3);
-	  }
-	  | '!' expression
-	  {
-	  	$$ = new_uop('!', $2);
-	  }
+expression: expression '+' expression { $$ = new_bop('+', $1, $3); }
+	  | expression '-' expression { $$ = new_bop('-', $1, $3); }
+	  | expression '<' expression { $$ = new_bop('<', $1, $3); }
+	  | expression '>' expression { $$ = new_bop('>', $1, $3); }
+	  | expression 'g' expression { $$ = new_bop('g', $1, $3); }
+	  | expression 'G' expression { $$ = new_bop('G', $1, $3); }
+	  | expression 'l' expression { $$ = new_bop('l', $1, $3); }
+	  | expression 'L' expression { $$ = new_bop('L', $1, $3); }
+	  | expression 'e' expression { $$ = new_bop('e', $1, $3); }
+	  | expression 'n' expression { $$ = new_bop('n', $1, $3); }
+	  | expression 'A' expression { $$ = new_bop('A', $1, $3); }
+	  | expression 'O' expression { $$ = new_bop('O', $1, $3); }
+	  | '!' expression { $$ = new_uop('!', $2); }
 	  ;
 
 args: { $$ = newstack(); }

@@ -99,7 +99,7 @@ B_Object *import(stack *args, Scope *S) {
 
 	Scope *MS = newScope(S);
 
-	st_st *modfunc = new_object(new_bfunction("module$", newstack(), program->block));
+	st_st *modfunc = new_object(new_bfunction("$module", newstack(), program->block));
 
 	B_Object *module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
 

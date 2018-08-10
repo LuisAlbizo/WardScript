@@ -22,6 +22,11 @@ B_Object *to_bool(B_Object *);
 /* NAME */
 st_st *eva_name(st_name *, Scope *);
 /* BOP */
+B_Object *bop_BYTE(char, B_Byte *, B_Object *); /* Binary OP for left-operand of type BYTE */
+B_Object *bop_NODE(char, B_Node *, B_Object *); /* Binary OP for left-operand of type NODE */
+B_Object *bop_NIL(char, B_Nil *, B_Object *); /* Binary OP for left-operand of type NIL */
+B_Object *bop_FUNCTION(char, B_Function *, B_Object *); /* Binary OP for left-operand of type FUNCTION */
+
 st_st *eva_bop(st_bop *, Scope *);
 /* UOP */
 st_st *eva_uop(st_uop *, Scope *);

@@ -34,10 +34,8 @@ int lineno = 0;
 
 "+"	return '+';
 "-"	return '-';
-"*"	return '*';
-"/"	return '/';
-"^"	return '^';
-"%"	return '%';
+"<<"	return '<';
+">>"	return '>';
 "&&"	return 'A';
 "||"	return 'O';
 "=="	return 'e';

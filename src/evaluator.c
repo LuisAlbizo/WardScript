@@ -43,72 +43,226 @@ st_st *eva_name(st_name *n, Scope *S) {
 }
 
 /* BOP */
+B_Object *bop_BYTE(char op, B_Byte *self, B_Object *o) {
+	char r = self->byte;
+	switch (op) {
+		case '+':
+			switch (o->type) {
+				case B_BYTE:
+					r = r + ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator + only valid on bytes");
+					break;
+			}
+			break;
+		case '-':
+			switch (o->type) {
+				case B_BYTE:
+					r = r - ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator - only valid on bytes");
+					break;
+			}
+			break;
+		case '<':
+			switch (o->type) {
+				case B_BYTE:
+					r = (char) r << ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator << only valid on bytes");
+					break;
+			}
+			break;
+		case '>':
+			switch (o->type) {
+				case B_BYTE:
+					r = (char) r >> ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator >> only valid on bytes");
+					break;
+			}
+			break;
+		case 'l':
+			switch (o->type) {
+				case B_BYTE:
+					r = r < ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator < only valid on bytes");
+					break;
+			}
+			break;
+		case 'L':
+			switch (o->type) {
+				case B_BYTE:
+					r = r <= ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator <= only valid on bytes");
+					break;
+			}
+			break;
+		case 'g':
+			switch (o->type) {
+				case B_BYTE:
+					r = r > ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator > only valid on bytes");
+					break;
+			}
+			break;
+		case 'G':
+			switch (o->type) {
+				case B_BYTE:
+					r = r >= ((B_Byte *) o)->byte;
+					break;
+				default:
+					raiseError(OPERATOR_ERROR, "Operator >= only valid on bytes");
+					break;
+			}
+			break;
+		case 'e':
+			switch (o->type) {
+				case B_BYTE:
+					r = r == ((B_Byte *) o)->byte;
+					break;
+				default:
+					r = 0;
+					break;
+			}
+			break;
+		case 'n':
+			switch (o->type) {
+				case B_BYTE:
+					r = r != ((B_Byte *) o)->byte;
+					break;
+				default:
+					r = 1;
+					break;
+			}
+			break;
+		case 'A':
+			r = ((B_Byte *) to_bool(o))->byte && r;
+			break;
+		case 'O':
+			r = ((B_Byte *) to_bool(o))->byte || r;
+			break;
+	}
+	return new_bbyte(r);
+}
+
+B_Object *bop_NODE(char op, B_Node *self, B_Object *o) {
+	char r = 1;
+	switch (op) {
+		case 'e':
+			switch (o->type) {
+				case B_NODE:
+					r = self == (B_Node *) o;
+					break;
+				default:
+					r = 0;
+					break;
+			}
+			break;
+		case 'n':
+			switch (o->type) {
+				case B_NODE:
+					r = self != (B_Node *) o;
+					break;
+				default:
+					r = 1;
+					break;
+			}
+			break;
+		case 'A':
+			r = r && ((B_Byte *) to_bool(o))->byte;
+			break;
+		case 'O':
+			r = r || ((B_Byte *) to_bool(o))->byte;
+			break;
+		default:
+			raiseError(OPERATOR_ERROR, "Invalid Operator for Node");
+			break;
+	}
+	return new_bbyte(r);
+}
+
+B_Object *bop_NIL(char op, B_Nil *self, B_Object *o) {
+	char r = 0;
+	switch (op) {
+		case 'e':
+			switch (o->type) {
+				case B_NIL:
+					r = 1;
+					break;
+				default:
+					r = 0;
+					break;
+			}
+			break;
+		case 'n':
+			switch (o->type) {
+				case B_NIL:
+					r = 0;
+					break;
+				default:
+					r = 1;
+					break;
+			}
+			break;
+		case 'A':
+			r = r && ((B_Byte *) to_bool(o))->byte;
+			break;
+		case 'O':
+			r = r || ((B_Byte *) to_bool(o))->byte;
+			break;
+		default:
+			raiseError(OPERATOR_ERROR, "Invalid Operator for Nil");
+			break;
+	}
+	return new_bbyte(r);
+}
+
+B_Object *bop_FUNCTION(char op, B_Function *self, B_Object *o) {
+	char r = 1;
+	switch (op) {
+		case 'A':
+			r = r && ((B_Byte *) to_bool(o))->byte;
+			break;
+		case 'O':
+			r = r || ((B_Byte *) to_bool(o))->byte;
+			break;
+		default:
+			raiseError(OPERATOR_ERROR, "Invalid Operator for Function");
+			break;
+	}
+	return new_bbyte(r);
+}
 
 st_st *eva_bop(st_bop *bop, Scope *S) {
-	st_st *result = NULL;
 	B_Object *left = ((st_object *) eva_(bop->left, S))->obj;
 	B_Object *right = ((st_object *) eva_(bop->right, S))->obj;
-	if (left->type == B_BYTE && right->type == B_BYTE) {
-		unsigned int lnumber = (unsigned int) ((B_Byte *) left)->byte;
-		unsigned int rnumber = (unsigned int) ((B_Byte *) right)->byte;
-		switch (bop->op) {
-			case '+':
-				lnumber = lnumber + rnumber;
-				break;
-			case '-':
-				lnumber = lnumber - rnumber;
-				break;
-			case '*':
-				lnumber = lnumber * rnumber;
-				break;
-			case '/':
-				lnumber = lnumber / rnumber;
-				break;
-			case '%':
-				lnumber = lnumber % rnumber;
-				break;
-			case '^':
-				if (rnumber < 0) {
-					for (int i = 0; i > rnumber; i--)
-						lnumber = 1 / lnumber;
-				} else if (rnumber > 0) {
-					for (int i = 0; i < rnumber; i++)
-						lnumber = lnumber * lnumber;
-				} else
-					lnumber = 1;
-				break;
-			case 'l': // <
-				lnumber = lnumber < rnumber;
-				break;
-			case 'L': // <=
-				lnumber = lnumber <= rnumber;
-				break;
-			case 'g': // >
-				lnumber = lnumber > rnumber;
-				break;
-			case 'G': // >=
-				lnumber = lnumber >= rnumber;
-				break;
-			case 'e': // ==
-				lnumber = lnumber == rnumber;
-				break;
-			case 'n': // =/
-				lnumber = lnumber != rnumber;
-				break;
-			case 'A': // &&
-				lnumber = lnumber && rnumber;
-				break;
-			case 'O': // ||
-				lnumber = lnumber || rnumber;
-				break;
-			default:
-				break;
-		}
-		result = new_object(new_bbyte((char) lnumber));
-	} else {
-		raiseError(OPERATOR_ERROR, "invalid operation for no-number types");
+	B_Object *result = NULL;
+	switch (left->type) {
+		case B_BYTE:
+			result = bop_BYTE(bop->op, (B_Byte *) left, right);
+			break;
+		case B_NODE:
+			result = bop_NODE(bop->op, (B_Node *) left, right);
+			break;
+		case B_NIL:
+			result = bop_NIL(bop->op, (B_Nil *) left, right);
+			break;
+		case B_FUNCTION:
+			result = bop_FUNCTION(bop->op, (B_Function *) left, right);
+			break;
 	}
-	return result;
+	return new_object(result);
 }
 
 /* UOP */
