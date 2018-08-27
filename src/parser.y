@@ -134,7 +134,7 @@ expression: NUMBER { $$ = $1; }
 	  {
 	  	/* lambda-like syntactic sugar */
 		stack *block = newstack();
-		assign *assi = new_assign(".result", $5);
+		assign *assi = new_assign(".return", $5);
 		stack *assis = newstack();
 		stack_push(assis, (stack_Data *) assi);
 		st_st *aux = new_assignment(assis);
