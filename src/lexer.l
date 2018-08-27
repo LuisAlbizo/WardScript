@@ -65,6 +65,7 @@ int lineno = 0;
 	if (strcmp(yytext, "if") == 0) return IF;
 	else if (strcmp(yytext, "else") == 0) return ELSE;
 	else if (strcmp(yytext, "then") == 0) return THEN;
+	else if (strcmp(yytext, "nonlocal") == 0) return NONLOCAL;
 	else if (strcmp(yytext, "end") == 0) return END;
 	else if (strcmp(yytext, "func") == 0) return FUNCTION;
 	else if (strcmp(yytext, "loop") == 0) return FOREVER;

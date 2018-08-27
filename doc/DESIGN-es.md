@@ -1,8 +1,0 @@
-# Diseño de WardScript
-
-
-
-
-
-
-

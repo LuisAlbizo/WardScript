@@ -5,6 +5,8 @@ WardScript pretende ser 2 cosas:
 1. Un lenguaje de alto nivel
 2. Un lenguaje de programacion util y minimalista
 
+La simpleza de este lenguaje lo hace adecuado para nuevos programadores, 
+
 ## Requerimientos
 
 * make

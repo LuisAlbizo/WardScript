@@ -25,7 +25,7 @@ extern int yylex();
 %token EQ
 %token DOT COMMA COLON SEMICOLON
 %token LPARENT RPARENT LBRACKET RBRACKET LBRACE RBRACE
-%token IF THEN ELSE END FOREVER EXIT FUNCTION
+%token IF THEN ELSE END FOREVER EXIT FUNCTION NONLOCAL
 %token <stat> NAME NUMBER STRING
 
 %type <stat> expression assignment statement
@@ -55,7 +55,12 @@ block: { $$ = (st_block *) new_block(newstack()); }
      }
      ;
 
-statement: expression SEMICOLON { $$ = $1; }
+statement: SEMICOLON
+	 { 
+	 	$$ = new_st();
+		$$->type = SEMICOLON;
+	 }
+	 | expression SEMICOLON { $$ = $1; }
 	 | IF expression THEN block END
 	 {
 	 	$$ = new_if($2, $4, (st_block *) new_block(newstack()));
@@ -122,7 +127,19 @@ expression: NUMBER { $$ = $1; }
 	  }
 	  | FUNCTION names COLON NAME COLON block END
 	  {
-	  	$$ = new_object(new_bfunction(((st_name *) $4)->name, $2, ((st_block *) $6)->block));
+	  	$$ = new_function_construct(((st_name *) $4)->name, $2, ((st_block *) $6)->block);
+	  	free($4);
+	  }
+	  | FUNCTION LBRACE names COLON expression RBRACE
+	  {
+	  	/* lambda-like syntactic sugar */
+		stack *block = newstack();
+		assign *assi = new_assign(".result", $5);
+		stack *assis = newstack();
+		stack_push(assis, (stack_Data *) assi);
+		st_st *aux = new_assignment(assis);
+		stack_push(block, (stack_Data *) aux);
+	  	$$ = new_function_construct(".return", $3, block);
 	  }
 	  | LBRACE assignment RBRACE
 	  {

@@ -33,8 +33,7 @@ B_Object *to_bool(B_Object *o) {
 st_st *eva_name(st_name *n, Scope *S) {
 	Scope_Object *o = Scope_Get(S, n->name);
 	if (!o) {
-		char e[200];
-		strcat(e, "use of name '");
+		char e[200] = "use of name '";
 		strcat(e, n->name);
 		strcat(e, "' before assignment");
 		raiseError(UNDECLARED_ERROR, e);
@@ -474,6 +473,12 @@ st_st *eva_list_construct(st_list_construct *lc, Scope *S) {
 	return new_object(new_List(passitems));
 }
 
+/* FUNCTION CONSTRUCT */
+
+st_st *eva_function_construct(st_function_construct *fc, Scope *S) {
+	return new_object(new_bfunction(fc->return_name, fc->argnames, fc->code_block));
+}
+
 /* MEMBER */
 
 st_st *eva_member(st_member *member, Scope *S) {
@@ -522,6 +527,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 			break;
 		case AST_LIST_C:
 			ret = eva_list_construct((st_list_construct *) stat, S);
+			break;
+		case AST_FUNC_C:
+			ret = eva_function_construct((st_function_construct *) stat, S);
 			break;
 		case AST_MEMBER:
 			ret = eva_member((st_member *) stat, S);

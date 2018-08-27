@@ -1,0 +1,112 @@
+? This is a comment ?
+
+? A comment is everything in between two question marks: '? ?'
+  and can be multi-line.
+
+  Everything inside a comment is ignored by the interpreter.
+?
+
+? Variable Declaration ?
+
+x := nil;
+a := 10, b := 20;
+? variables can contain $ and ' ?
+$var' := 0;
+
+a := 1;
+b := a, c := b;
+
+? Data Types ?
+
+$nil := nil,
+$byte := 255,
+$node := {
+	x := 1,
+	y := { n := 123 },
+	x := nil
+},
+$function := func x, y: x:
+	x := x + y;
+end;
+
+? Nil 
+	The 'nil' data type represents the ausence of value, it's useful on data-structures.
+
+	'nil' it's a reserved keyword that means a object which not contains nothing.
+?
+
+? Bytes
+	A byte it's an unsigned integer lesser than 256.
+?
+
+b1 := 0, b2 := 255, b3 := 128;
+
+? Nodes
+
+?
+
+? Functions 
+	Functions are a first-class values. To declare a function we must assign it to
+	a variable.
+
+	The syntaxis to create a function is the following:
+		func arg1, arg2, arg3: result:
+			?? Block ??
+			result := [arg1, arg2, arg3];
+		end
+	
+	The keyword 'func' followed by the list arguments th function takes on a call,
+	then a variable name that may be declared inside the function or exist in the scope
+	then a block of code and ending with the 'end' keyword.
+?
+
+f := func x, y: x:
+	x := x + y;
+end,
+
+f2 := func x, y: nil:
+	if x > y then
+		present(x);
+	else
+		if y > x then
+			present(y);
+		else
+			present(x, y);
+		end
+	end
+end,
+
+f2' := func x, y: nil:
+	if x > y then
+		present(x);
+		exit;
+	end
+
+	if y > x then
+		present(y);
+		exit;
+	end
+
+	if x == y then
+		present(x, y);
+		exit;
+	end
+end;
+
+? Notes on functions:
+	* The argument list may be empty sothe function won't need any argument at moment of call.
+
+	* The 'return variable' may be not declared inside the function, but it has to exist somewhere
+	in the scope at the moment of call. (an example is the function f2)
+
+	* The 'exit' keyword it's like a return, in the sense it automatically breaks the flow of the
+	function. (example of use in f2')
+?
+
+
+
+
+
+
+
+

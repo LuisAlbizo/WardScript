@@ -1,0 +1,23 @@
+number := import("number.ward");
+
+String := func str: str:
+	str := {
+		root := str,
+		len := number.number(0)
+	};
+	root := str.root;
+	loop
+		if root == nil then
+			exit;
+		else
+			str.len := number.add(str.len, number.number(1));
+			root := root.$next;
+		end
+	end
+end;
+
+s := String("Hola");
+present(s.len);
+
+
+

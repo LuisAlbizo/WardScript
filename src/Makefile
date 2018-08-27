@@ -1,19 +1,34 @@
 
 DESTDIR = ~/..
 PREFIX = /usr
-CC = cc
+CC = gcc
+CFLAGS = -std=c99
+PARSER = parser.tab.c lex.yy.c
+OBJECTS = stack.o dict.o object.o evaluator.o scope.o ast.o error.o
+EXEC = ward
 
-build: parser stack dict object eval scope ast error
-	$(CC) *.o parser.tab.c lex.yy.c -o ward -lfl
+LIB = libward.a
 
-install: ward
+all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
+	@printf '=================\n'
+	@printf 'Ready to install.\n'
+	@printf '=================\n'
+
+$(EXEC): $(OBJECTS) $(PARSER)
+	$(CC) $(PARSER) $(OBJECTS) -o $(EXEC) -lfl
+
+$(LIB): $(OBJECTS)
+	ar rc $(LIB) $(OBJECTS)
+
+install: $(EXEC) $(LIB)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp $< $(DESTDIR)$(PREFIX)/bin/ward
+	cp $< $(DESTDIR)$(PREFIX)/bin/$(EXEC)
+	mv $(LIB) stdlib
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/ward
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(EXEC)
 
-eval: evaluator.c evaluator.h
+evaluator: evaluator.c evaluator.h
 	$(CC) -c evaluator.c
 
 scope: scope.c scope.h
@@ -34,10 +49,10 @@ dict: dict.c dict.h
 error: error.c error.h
 	$(CC) -c error.c
 
-parser: lexer.l parser.y
+$(PARSER): lexer.l parser.y
 	flex lexer.l
 	bison -d parser.y
 
 clean:
-	rm *.o parser.tab.* lex.yy.c
+	rm -f parser.tab.* lex.yy.c *.o ward.a
 

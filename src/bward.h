@@ -39,10 +39,10 @@ B_Object *present(stack *args, Scope *S) {
 				printf("<nil> ");
 				break;
 			case B_NODE:
-				printf("<node> ");
+				printf("<node at %p> ", arg);
 				break;
 			case B_FUNCTION:
-				printf("<function> ");
+				printf("<function at %p> ", arg);
 				break;
 			default:
 				printf("<unknown: %d> ", arg->type);
@@ -106,6 +106,24 @@ B_Object *import(stack *args, Scope *S) {
 	return module;
 }
 
+#define MAX_INPUT 1024
+
+B_Object *input(stack *args, Scope *S) {
+	size_t size = MAX_INPUT;
+	char *s = malloc(MAX_INPUT);
+	if (!s) {
+		fprintf(stderr, "Can't allocate memory for input\n");
+		exit(1);
+	}
+	print(args, S);
+	if (getline(&s, &size, stdin) == -1) {
+		fprintf(stderr, "Error: No Line\n");
+		exit(1);
+	}
+	s[MAX_DICT_KEY-1] = '\0';
+	return new_string(s);
+}
+
 /* Global Scope */
 
 int main(int argc, char **argv) {
@@ -125,6 +143,7 @@ int main(int argc, char **argv) {
 
 	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&present));
 	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&print));
+	Scope_Set(GS, "input",		(Scope_Object *) new_cfunction(&input));
 	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&import));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
 	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));

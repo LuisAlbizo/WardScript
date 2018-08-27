@@ -1,0 +1,105 @@
+? number ?
+
+number := func byte: n:
+	n := {
+		$byte := byte,
+		$nextbyte := nil
+	};
+end,
+
+ncopy := func x: n:
+	n := number(0);
+	cur := n;
+	loop
+		cur.$byte := x.$byte;
+		x := x.$nextbyte;
+		if !x then
+			exit;
+		else
+			cur.$nextbyte := number(0);
+			cur := cur.$nextbyte;
+		end
+	end
+end;
+
+recur_add := func x, y, count: nil:
+	if count then
+		recur_add(x, number(count), 0);
+		count := 0;
+	end
+
+	if !y then
+		exit;
+	end
+
+	if (255 - y.$byte < x.$byte) then
+		count := 1;
+	end
+	x.$byte := x.$byte + y.$byte;
+
+	if x.$nextbyte == nil then
+		x.$nextbyte := number(count);
+		count := 0;
+	end
+	recur_add(x.$nextbyte, y.$nextbyte, count);
+end,
+add := func x, y: n:
+	n := ncopy(x);
+	recur_add(n, y, 0);
+end;
+
+recur_sub := func x, y, count: nil:
+	if count then
+		recur_sub(x, number(count), 0);
+		count := 0;
+	end
+
+	if !y then
+		exit;
+	end
+	if !x then
+		
+		exit;
+	end
+
+	if (255 - y.$byte < x.$byte) then
+		count := 1;
+	end
+	x.$byte := x.$byte + y.$byte;
+
+	if x.$nextbyte == nil then
+		x.$nextbyte := number(count);
+		count := 0;
+	end
+	recur_add(x.$nextbyte, y.$nextbyte, count);
+end,
+sub := func x, y: n:
+	n := ncopy(x);
+	recur_sub(n, y, 0);
+end;
+
+mul := func x, y: n:
+	n := ncopy(x);
+
+end;
+
+
+prnum := func n: nil:
+	cur := n;
+	print("Number: ", 10);
+	loop
+		if !cur then exit; end
+		present(cur.$byte);
+		cur := cur.$nextbyte;
+	end
+end;
+
+? Module Export ?
+
+$module := {
+	number := number,
+	ncopy := ncopy,
+	add := add,
+	sub := sub
+};
+

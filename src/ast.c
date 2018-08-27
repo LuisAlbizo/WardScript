@@ -1,6 +1,7 @@
 /* Syntax Tree Data Structure implementation file: ast.c
  * Luis Albizo "07-25-18"
  */
+
 #include "dict.h"
 #include "scope.h"
 #include "stack.h"
@@ -87,6 +88,15 @@ st_st *new_list_construct(stack *items) {
 	nl->type = AST_LIST_C;
 	nl->items = items;
 	return (st_st *) nl;
+}
+
+st_st *new_function_construct(char *return_name, stack *argnames, stack *code_block) {
+	st_function_construct *fc = astalloc(sizeof(st_function_construct));
+	fc->type = AST_FUNC_C;
+	strncpy(fc->return_name, return_name, MAX_DICT_KEY);
+	fc->argnames = argnames;
+	fc->code_block = code_block;
+	return (st_st *) fc;
 }
 
 st_st *new_member(st_st *obj, char *mname) {
