@@ -82,6 +82,7 @@ B_Object *w_bool(stack *args, Scope *S) {
 }
 
 B_Object *w_import(stack *args, Scope *S) {
+	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "import expected one argument");
 	char fname[129];
 	int i = 0;
 	B_Node *chr = (B_Node *) stack_pop(args);
@@ -92,7 +93,7 @@ B_Object *w_import(stack *args, Scope *S) {
 		chr = (B_Node *) Bnode_Get(chr, "$next");
 	}
 	fname[i] = '\0';
-	
+
 	yyin = fopen(fname, "r");
 	if (!yyin) {
 		perror(fname);
@@ -128,6 +129,15 @@ B_Object *w_input(stack *args, Scope *S) {
 	return new_string(s);
 }
 
+B_Object *w_finish(stack *args, Scope *S) {
+	B_Byte *e = (B_Byte *) stack_pop(args);
+	int code;
+	if (!e) e = (B_Byte *) Scope_Get(S, "exit_code");
+	code = e->byte;
+	exit(code);
+	return NULL;
+}
+
 /* Global Scope */
 
 int main(int argc, char **argv) {
@@ -149,6 +159,7 @@ int main(int argc, char **argv) {
 	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&w_print));
 	Scope_Set(GS, "input",		(Scope_Object *) new_cfunction(&w_input));
 	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&w_import));
+	Scope_Set(GS, "finish",		(Scope_Object *) new_cfunction(&w_finish));
 	Scope_Set(GS, "bool",		(Scope_Object *) new_cfunction(&w_bool));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
 	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));

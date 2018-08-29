@@ -30,7 +30,7 @@ $function := func x, y: x:
 end;
 
 ? Nil 
-	The 'nil' data type represents the ausence of value, it's useful on data-structures.
+	The 'nil' data type represents the absence of value, it's useful on data-structures.
 
 	'nil' it's a reserved keyword that means a object which not contains nothing.
 ?

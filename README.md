@@ -26,13 +26,19 @@ make && make install
 make clean
 ```
 
-## Licence
+Once you have installed successfully the interpreter to execute a wardscript program just run:
 
-This code is under the MIT License. (see [License](./LICENSE))
+```
+ward script_name
+```
+
+## License
+
+This project is under the MIT License. (see [License](./LICENSE))
 
 ## Tutorial
 
-* [Wiki](https://github.com/LuisAlbizo/WardScript/wiki)
+* [Wiki](https://github.com/LuisAlbizo/WardScript/wiki) (short tutorial, you have to already know programming)
 
 ## Author
 
