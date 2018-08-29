@@ -48,13 +48,22 @@ Scope_Object *Scope_Get(Scope *s, char *key) {
 	return (Scope_Object *) match->data;
 }
 
+bool Scope_CheckIn(Scope *S, Scope *SS) {
+	bool in = false;
+	Scope *last = SS;
+	while (last) {
+		if (S == last) {
+			in = true;
+			break;
+		} else last = last->upscope;
+	}
+	return in;
+}
+
 void Scope_Concat(Scope *S, Scope *US) {
 	Scope *last = S;
-	int i = 0;
 	while (last->upscope) {
-		if (last == US) return;
-		i++;
-		if (i == 20) exit(12);
+		if (Scope_CheckIn(last, US)) return;
 		last = last->upscope;
 	}
 	last->upscope = US;

@@ -1,7 +1,7 @@
 "Vim syntax file
 "Language: WardScript
 "Maintainer: Luis Albizo
-"Latest Revision: 13 - Aug - 10
+"Latest Revision: 23 - Aug - 18
 
 syn keyword builtinFunctions print present import
 syn keyword controlStats if then else end loop exit

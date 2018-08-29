@@ -5,7 +5,8 @@ WardScript claims to be 2 things:
 1. A high-level language
 2. An useful and minimalistic programming language
 
-La simpleza de este lenguaje lo hace adecuado para nuevos programadores, 
+The simplicity of wardscript makes it suitable for new programmers and those looking for a simple language
+especially to implement algorithms and data structures in an understandable way.
 
 ## Requirements
 
@@ -35,5 +36,5 @@ This code is under the MIT License. (see [License](./LICENSE))
 
 ## Author
 
-Luis Albizo, 2018
+> **Luis Albizo 2018**
 

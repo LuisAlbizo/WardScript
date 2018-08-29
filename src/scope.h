@@ -23,6 +23,10 @@ typedef dict_Data Scope_Object;
 Scope *newScope(Scope *);
 void free_Scope(Scope *);
 
+#define true 1
+#define false 0
+typedef char bool;
+
 /* Scope Functions to set/get variables */
 
 void Scope_Set(Scope *, char *, Scope_Object *); /* Set (assign) a name in the Scope
@@ -44,6 +48,7 @@ Scope_Object *Scope_Get(Scope *, char *); /* Returns the object stored in the sc
 
 				       */
 
+bool Scope_CheckIn(Scope *, Scope *);
 void Scope_Concat(Scope *, Scope *); /* This concats two scopes, the first is the scope
 					most closely, the second is the scope more distant.
 
