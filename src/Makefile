@@ -1,4 +1,5 @@
 
+# Modify this variables to your /usr directory
 DESTDIR = ~/..
 PREFIX = /usr
 CC = gcc

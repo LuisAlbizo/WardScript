@@ -30,7 +30,11 @@ void Scope_Set(Scope *, char *, Scope_Object *); /* Set (assign) a name in the S
 					      If the name already exists only change the object associated
 					      with that name.
 
-					      */
+						*/
+
+void Scope_NLSet(Scope *, char *, Scope_Object *); /* Set (assign) a name searching the name recursively
+						      starting from the up-scope of 'Scope *'
+						*/
 
 Scope_Object *Scope_Get(Scope *, char *); /* Returns the object stored in the scope associated with a name.
 
@@ -39,5 +43,11 @@ Scope_Object *Scope_Get(Scope *, char *); /* Returns the object stored in the sc
 				       can't found the name then raises an error of Undeclared Variable.
 
 				       */
+
+void Scope_Concat(Scope *, Scope *); /* This concats two scopes, the first is the scope
+					most closely, the second is the scope more distant.
+
+					This is made it for implementing closures.
+					*/
 
 #endif

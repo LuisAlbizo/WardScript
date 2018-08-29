@@ -269,46 +269,30 @@ st_st *eva_bop(st_bop *bop, Scope *S) {
 st_st *eva_uop(st_uop *uop, Scope *S) {
 	unsigned int rnumber;
 	st_st *right = eva_(uop->right, S);
-	switch (((st_object *) right)->obj->type) {
-		case B_BYTE:
-			rnumber = (unsigned int) ((B_Byte *) ((st_object *) right)->obj)->byte;
-			switch (uop->op) {
-				case '!':
+	switch (uop->op) {
+		case '!':
+			switch (((st_object *) right)->obj->type) {
+				case B_BYTE:
+					rnumber = (unsigned int) ((B_Byte *) ((st_object *) right)->obj)->byte;
 					rnumber = (rnumber == 0) ? 1 : 0;
 					break;
-				default:
-					break;
-			}
-			break;
-		case B_NIL:
-			switch (uop->op) {
-				case '!':
+				case B_NIL:
 					rnumber = 1;
 					break;
-				default:
-					break;
-			}
-			break;
-		case B_FUNCTION:
-			switch (uop->op) {
-				case '!':
+				case B_FUNCTION:
 					rnumber = 0;
 					break;
-				default:
-					break;
-			}
-			break;
-		case B_NODE:
-			switch (uop->op) {
-				case '!':
+				case B_NODE:
 					rnumber = 0;
 					break;
-				default:
-					break;
 			}
+			right = new_object(new_bbyte((char) rnumber));
+			break;
+		case '#':
+			uop->right = right;
 			break;
 	}
-	return new_object(new_bbyte((char) rnumber));
+	return right;
 }
 
 /* ASSIGNMENT */
@@ -320,6 +304,19 @@ st_st *eva_assignment(st_assignment *assi, Scope *S) {
 		o = ((st_object *) eva_(((assign *) nod->data)->value, S))->obj;
 		Scope_Set(S, ((assign *) nod->data)->name, (Scope_Object *) o);
 
+		nod = nod->next;
+	}
+	return new_st();
+}
+
+/* NONLOCAL ASSIGNMENT */
+
+st_st *eva_nonlocal_assignment(st_assignment *assi, Scope *S) {
+	stack_node *nod = assi->assigns->top;
+	B_Object *o;
+	while (nod) {
+		o = ((st_object *) eva_(((assign *) nod->data)->value, S))->obj;
+		Scope_NLSet(S, ((assign *) nod->data)->name, (Scope_Object *) o);
 		nod = nod->next;
 	}
 	return new_st();
@@ -374,10 +371,13 @@ st_st *eva_call(st_call *call, Scope *S) {
 		raiseError(UNCALLABLE_ERROR, "not a function expression");
 	stack_node *stat;
 	B_Object *return_obj;
-	Scope *FS = newScope(S);
+	Scope *FS;
 	stack_node *argval;
 	switch (f->ftype) {
 		case B_FUNCTYPE:
+			FS = newScope(f->state); // The first-level scope is the one that existed
+						// in the context where function was created
+			Scope_Concat(FS, S); // For closure functionality
 			// Setting the arguments on the FScope
 			if (f->argnames->count != call->args->count)
 				raiseError(ARGCOUNT_ERROR, "");
@@ -402,6 +402,7 @@ st_st *eva_call(st_call *call, Scope *S) {
 				raiseError(UNDECLARED_ERROR, "return name not declared");
 			break;
 		case C_FUNCTYPE:;
+			FS = newScope(S);
 			stack *evalargs = newstack(), *passargs = newstack();
 			stack_Data *arg = stack_pop(call->args);
 			int i = 0;
@@ -476,7 +477,7 @@ st_st *eva_list_construct(st_list_construct *lc, Scope *S) {
 /* FUNCTION CONSTRUCT */
 
 st_st *eva_function_construct(st_function_construct *fc, Scope *S) {
-	return new_object(new_bfunction(fc->return_name, fc->argnames, fc->code_block));
+	return new_object(new_bfunction(fc->return_name, fc->argnames, fc->code_block, S));
 }
 
 /* MEMBER */
@@ -522,6 +523,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 		case AST_NAME:
 			ret = eva_name((st_name *) stat, S);
 			break;
+		case AST_NL_NAME:
+			ret = eva_name((st_name *) stat, S->upscope);
+			break;
 		case AST_NODE_C:
 			ret = eva_node_construct((st_node_construct *) stat, S);
 			break;
@@ -551,6 +555,9 @@ st_st *eva_(st_st *stat, Scope *S) {
 			break;
 		case AST_ASSIGNMENT:
 			ret = eva_assignment((st_assignment *) stat, S);
+			break;
+		case AST_NL_ASSIGN:
+			ret = eva_nonlocal_assignment((st_assignment *) stat, S);
 			break;
 		default:
 			ret = new_st();

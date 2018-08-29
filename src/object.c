@@ -65,7 +65,7 @@ B_Object *new_bbyte(char n) {
 
 /* Function */
 
-B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
+B_Object *new_bfunction(char *return_name, stack *argnames, stack *code, Scope *state) {
 	B_Function *f = malloc(sizeof(B_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function");
@@ -74,6 +74,7 @@ B_Object *new_bfunction(char *return_name, stack *argnames, stack *code) {
 	strncpy(f->return_name, return_name, MAX_DICT_KEY);
 	f->argnames = argnames;
 	f->code_block = code;
+	f->state = state;
 	return (B_Object *) f;
 }
 

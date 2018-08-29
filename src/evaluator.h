@@ -32,6 +32,8 @@ st_st *eva_bop(st_bop *, Scope *);
 st_st *eva_uop(st_uop *, Scope *);
 /* ASSIGNMENT */
 st_st *eva_assignment(st_assignment *, Scope *);
+/* NONLOCAL ASSIGNMENT */
+st_st *eva_nonlocal_assignment(st_assignment *, Scope *);
 /* IF */
 st_st *eva_if(st_if *, Scope *);
 /* FOREVER */

@@ -35,10 +35,10 @@ extern int yylex();
 /* Precedence Rules
 */
 %left 'A' 'O' /* && || ... Logical Operators */
-%left 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == =/ ... Comparission Operands */
+%left 'g' 'G' 'l' 'L' 'e' 'n' /* > >= < <= == /= ... Comparission Operands */
 %left '+' '-' /* + - ... Aritmethic High Precedence */
 %left '<' '>' /* << >> ... Aritmethic Low Precedence */
-%nonassoc '!' /* Unary Operators non-associative */
+%nonassoc '!' '#' /* Unary Operators non-associative */
 %nonassoc LPARENT DOT COLON
 
 %start program
@@ -74,6 +74,11 @@ statement: SEMICOLON
 	 	$$ = new_forever($2);
 	 }
 	 | assignment SEMICOLON { $$ = $1; }
+	 | NONLOCAL assignment SEMICOLON
+	 {
+	 	$$ = $2;
+		$$->type = AST_NL_ASSIGN;
+	 }
 	 | expression DOT NAME EQ expression SEMICOLON
 	 {
 	  	st_member *member = (st_member *) new_member($1, ((st_name *) $3)->name);
@@ -109,6 +114,11 @@ assignment: NAME EQ expression
 
 expression: NUMBER { $$ = $1; }
 	  | NAME { $$ = $1; }
+	  | NONLOCAL NAME
+	  {
+	  	$$ = $2;
+		$$->type = AST_NL_NAME;
+	  }
 	  | STRING { $$ = $1; }
 	  | LPARENT expression RPARENT { $$ = $2; }
 	  | expression LPARENT args RPARENT
@@ -166,6 +176,7 @@ expression: expression '+' expression { $$ = new_bop('+', $1, $3); }
 	  | expression 'A' expression { $$ = new_bop('A', $1, $3); }
 	  | expression 'O' expression { $$ = new_bop('O', $1, $3); }
 	  | '!' expression { $$ = new_uop('!', $2); }
+	  | '#' expression { $$ = new_uop('#', $2); }
 	  ;
 
 args: { $$ = newstack(); }

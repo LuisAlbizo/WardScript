@@ -28,7 +28,7 @@ void yyerror(char *s, ...) {
 
 /* Built-in Functions */
 
-B_Object *present(stack *args, Scope *S) {
+B_Object *w_present(stack *args, Scope *S) {
 	B_Object *arg = (B_Object *) stack_pop(args);
 	while (arg) {
 		switch (arg->type) {
@@ -54,7 +54,7 @@ B_Object *present(stack *args, Scope *S) {
 	return new_bnil();
 }
 
-B_Object *print(stack *args, Scope *S) {
+B_Object *w_print(stack *args, Scope *S) {
 	B_Object *arg = (B_Object *) stack_pop(args);
 	while (arg) {
 		switch (arg->type) {
@@ -77,7 +77,11 @@ B_Object *print(stack *args, Scope *S) {
 	return new_bnil();
 }
 
-B_Object *import(stack *args, Scope *S) {
+B_Object *w_bool(stack *args, Scope *S) {
+	return to_bool((B_Object *) stack_pop(args));
+}
+
+B_Object *w_import(stack *args, Scope *S) {
 	char fname[129];
 	int i = 0;
 	B_Node *chr = (B_Node *) stack_pop(args);
@@ -99,7 +103,7 @@ B_Object *import(stack *args, Scope *S) {
 
 	Scope *MS = newScope(S);
 
-	st_st *modfunc = new_object(new_bfunction("$module", newstack(), program->block));
+	st_st *modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
 
 	B_Object *module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
 
@@ -108,14 +112,14 @@ B_Object *import(stack *args, Scope *S) {
 
 #define MAX_INPUT 1024
 
-B_Object *input(stack *args, Scope *S) {
+B_Object *w_input(stack *args, Scope *S) {
 	size_t size = MAX_INPUT;
 	char *s = malloc(MAX_INPUT);
 	if (!s) {
 		fprintf(stderr, "Can't allocate memory for input\n");
 		exit(1);
 	}
-	print(args, S);
+	w_print(args, S);
 	if (getline(&s, &size, stdin) == -1) {
 		fprintf(stderr, "Error: No Line\n");
 		exit(1);
@@ -141,14 +145,15 @@ int main(int argc, char **argv) {
 
 	Scope *GS = newScope(NULL);
 
-	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&present));
-	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&print));
-	Scope_Set(GS, "input",		(Scope_Object *) new_cfunction(&input));
-	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&import));
+	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&w_present));
+	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&w_print));
+	Scope_Set(GS, "input",		(Scope_Object *) new_cfunction(&w_input));
+	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&w_import));
+	Scope_Set(GS, "bool",		(Scope_Object *) new_cfunction(&w_bool));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
 	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));
 
-	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block));
+	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block, NULL));
 
 	B_Byte *return_code = (B_Byte *) ((st_object *) eva_(new_call(mainfunc, newstack()), GS))->obj;
 

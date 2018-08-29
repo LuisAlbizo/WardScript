@@ -46,6 +46,7 @@ struct B_F {
 	char return_name[MAX_DICT_KEY];
 	stack *argnames;
 	stack *code_block;
+	Scope *state; // For closure functionality
 	B_Object* (*cfunc)(stack *, Scope *);
 };
 
@@ -70,7 +71,7 @@ B_Object *new_bbyte(char);
 
 /* Function */
 
-B_Object *new_bfunction(char *, stack *, stack *);
+B_Object *new_bfunction(char *, stack *, stack *, Scope *);
 B_Object *new_cfunction(B_Object* (*)(stack *, Scope *));
 
 /* Pseudo-String */

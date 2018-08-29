@@ -12,6 +12,7 @@
 	/* AST Nodetypes */
 #define AST_BLOCK	1
 #define AST_ASSIGNMENT	2
+#define AST_NL_ASSIGN	22
 #define AST_BOP		3
 #define AST_UOP		4
 #define AST_CALL	5
@@ -22,10 +23,11 @@
 #define AST_MEMBER_A	10
 #define AST_MEMBER	11
 #define AST_NAME	12
-#define AST_NAMES	13
-#define AST_NODE_C	14
-#define AST_LIST_C	15
-#define AST_FUNC_C	16
+#define AST_NL_NAME	13
+#define AST_NAMES	14
+#define AST_NODE_C	15
+#define AST_LIST_C	16
+#define AST_FUNC_C	17
 #define AST_OBJECT	18
 
 /* AST struct definition for each type of statement

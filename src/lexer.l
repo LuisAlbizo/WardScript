@@ -45,6 +45,7 @@ int lineno = 0;
 ">"	return 'g';
 ">="	return 'G';
 "!"	return '!';
+"#"	return '#';
 
 \(	return LPARENT;
 \)	return RPARENT;
@@ -61,7 +62,7 @@ int lineno = 0;
 	return NUMBER;
 }
 
-['$#a-zA-Z_]['$#a-zA-Z_0-9]*	{
+['$a-zA-Z_]['$a-zA-Z_0-9]*	{
 	if (strcmp(yytext, "if") == 0) return IF;
 	else if (strcmp(yytext, "else") == 0) return ELSE;
 	else if (strcmp(yytext, "then") == 0) return THEN;
