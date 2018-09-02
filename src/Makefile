@@ -16,7 +16,7 @@ all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
 $(EXEC): $(OBJECTS) $(PARSER)
 	$(CC) $(PARSER) $(OBJECTS) -o $(EXEC) -lfl
 
-$(LIB): $(OBJECTS)
+$(LIB): $(OBJECTS) wardsocket.c
 	@printf '======================\n'
 	@printf 'Compiling Libraries...\n'
 	@printf '======================\n'

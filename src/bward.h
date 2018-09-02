@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <dlfcn.h>
 #include "scope.h"
 #include "object.h"
 #include "stack.h"
@@ -86,6 +87,7 @@ B_Object *w_import(stack *args, Scope *S) {
 	char fname[129];
 	int i = 0;
 	B_Node *chr = (B_Node *) stack_pop(args);
+	B_Object *module;
 	while (i <= 128) {
 		if (chr->type != B_NODE)
 			break;
@@ -93,7 +95,23 @@ B_Object *w_import(stack *args, Scope *S) {
 		chr = (B_Node *) Bnode_Get(chr, "$next");
 	}
 	fname[i] = '\0';
-
+	// Check in the so libraries
+	char solib[149] = "";
+	sprintf(solib, "libward_%s.so", fname);
+	//sprintf(solib, "%s/libward_%s.so", getenv("LD_LIBRARY_PATH"), fname);
+	void *lib_so = dlopen(solib, RTLD_LAZY);
+	if (lib_so) {
+		B_Object *(*module_loader)(stack *args, Scope *S);
+		module_loader = dlsym(lib_so, "module_loader");
+		char *error_msg = dlerror();
+		if (error_msg) {
+			fprintf(stderr, "Error loading so module: %s\n", error_msg);
+			exit(1);
+		}
+		module = (*module_loader)(args, S);
+		return module;
+	}
+	// Check in the current directory
 	yyin = fopen(fname, "r");
 	if (!yyin) {
 		perror(fname);
@@ -106,7 +124,7 @@ B_Object *w_import(stack *args, Scope *S) {
 
 	st_st *modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
 
-	B_Object *module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
+	module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
 
 	return module;
 }

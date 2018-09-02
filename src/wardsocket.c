@@ -72,34 +72,36 @@
 
 char *ipv4_to_str(B_Node *l) {
 	char *sip = malloc(16);
+	char n[4] = "";
 	l = (B_Node *) Bnode_Get(l, "$root");
 	if (l->type != B_NODE)
 		raiseError(TYPE_ERROR, "empty list on ipv4 member");
 	for (char b = 0; b < 4; b++) {
-		sprintf(sip, "%d", ((B_Byte *) Bnode_Get(l, "$data"))->byte);
+		sprintf(n, "%d", ((B_Byte *) Bnode_Get(l, "$data"))->byte);
+		strcat(sip, n);
 		l = (B_Node *) Bnode_Get(l, "$next");
 		if (l->type != B_NODE)
 			break;
 		else
-			sprintf(sip, ".");
+			strcat(sip, ".");
 	}
 	sip[15] = '\0';
 	return sip;
 }
 
-short port_to_short(B_Node *p) {
-	short s;
+int port_to_short(B_Node *p) {
+	int s;
 	p = (B_Node *) Bnode_Get(p, "$root");
 	if (p->type != B_NODE)
-		raiseError(TYPE_ERROR, "empty list on ipv4 member");
+		raiseError(TYPE_ERROR, "empty list on port member");
 	s = ((B_Byte *) Bnode_Get(p, "$data"))->byte;
 	p = (B_Node *) Bnode_Get(p, "$next");
 	s = s + (((B_Byte *) Bnode_Get(p, "$data"))->byte * 256);
 	return s;
 }
 
-B_Object *short_to_port(short s) {
-	char b1 = s % 256, b2 = s / 256;
+B_Object *short_to_port(int s) {
+	int b1 = s % 256, b2 = s / 256;
 	B_Node *port = (B_Node *) new_ListItem(new_bbyte(b1));
 	Bnode_Set(port, "$next", (dict_Data *) new_ListItem(new_bbyte(b2)));
 	B_Node *l = (B_Node *) new_List(newstack());
@@ -169,7 +171,7 @@ B_Object *ward_socket_bind(stack *args, Scope *S) {
 	sock->addr.sin_family = AF_INET;
 	sock->addr.sin_port = htons(port_to_short(port));
 	// Calling c interface
-	if (bind(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr)) < 0)
+	if (bind(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr_in)) < 0)
 		success = 0;
 	return new_bbyte(success);
 }
@@ -237,7 +239,7 @@ B_Object *ward_socket_connect(stack *args, Scope *S) {
 	B_Node *sock_addr = (B_Node *) stack_pop(args);
 	if (sock_addr->type != B_NODE)
 		raiseError(TYPE_ERROR, "sock_addr must be a node");
-	// Bind
+	// Connect
 	B_Node *port = (B_Node *) Bnode_Get(sock_addr, "port");
 	if (port->type != B_NODE)
 		raiseError(TYPE_ERROR, "port must be a node");
@@ -250,7 +252,7 @@ B_Object *ward_socket_connect(stack *args, Scope *S) {
 	sock->addr.sin_family = AF_INET;
 	sock->addr.sin_port = htons(port_to_short(port));
 	// Calling c interface
-	if (connect(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr)) < 0)
+	if (connect(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr_in)) < 0)
 		success = 0;
 	return new_bbyte(success);
 }

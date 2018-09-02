@@ -434,7 +434,9 @@ st_st *eva_methodcall(st_methodcall *mcall, Scope *S) {
 		raiseError(TYPE_ERROR, "method must be a Function");
 	call = (st_call *) new_call(new_object(f), mcall->args);
 	stack_push(call->args, (stack_Data *) new_object(o));
-	return eva_call(call, S);
+	st_st *result = eva_call(call, S);
+	stack_pop(call->args);
+	return result;
 }
 
 /* NODE CONSTRUCT */
