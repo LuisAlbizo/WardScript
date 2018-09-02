@@ -405,7 +405,6 @@ st_st *eva_call(st_call *call, Scope *S) {
 			FS = newScope(S);
 			stack *evalargs = newstack(), *passargs = newstack();
 			stack_Data *arg = stack_pop(call->args);
-			int i = 0;
 			while (arg) {
 				stack_push(evalargs, arg);
 				arg = stack_pop(call->args);

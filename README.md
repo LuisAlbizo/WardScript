@@ -26,7 +26,7 @@ make && make install
 make clean
 ```
 
-Once you have installed successfully the interpreter to execute a wardscript program just run:
+Once you have installed the interpreter; to execute a wardscript program just run:
 
 ```
 ward script_name
@@ -38,7 +38,7 @@ This project is under the MIT License. (see [License](./LICENSE))
 
 ## Tutorial
 
-* [Wiki](https://github.com/LuisAlbizo/WardScript/wiki) (short tutorial, you have to already know programming)
+* [Wiki](https://github.com/LuisAlbizo/WardScript/wiki) (short tutorial, you already have to know programming)
 
 ## Author
 

@@ -6,5 +6,6 @@
 	* vector (in wardscript)
 	* dict (in wardscript)
 * **GARBAGE COLLECTOR!**
-
+* Document the code
+* Proper error traceback
 

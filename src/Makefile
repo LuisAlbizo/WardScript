@@ -1,14 +1,12 @@
 
-# Modify this variables to your /usr directory
-DESTDIR = ~/..
-PREFIX = /usr
 CC = gcc
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -Wall
 PARSER = parser.tab.c lex.yy.c
 OBJECTS = stack.o dict.o object.o evaluator.o scope.o ast.o error.o
 EXEC = ward
 
-LIB = libward.a
+LIB = libward_socket.so
+LIB_REQS = object.o error.o stack.o dict.o scope.o
 
 all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
 	@printf '=================\n'
@@ -19,12 +17,20 @@ $(EXEC): $(OBJECTS) $(PARSER)
 	$(CC) $(PARSER) $(OBJECTS) -o $(EXEC) -lfl
 
 $(LIB): $(OBJECTS)
-	ar rc $(LIB) $(OBJECTS)
+	@printf '======================\n'
+	@printf 'Compiling Libraries...\n'
+	@printf '======================\n'
+	$(CC) -fPIC -c wardsocket.c
+	$(CC) -shared -o $(LIB) wardsocket.o $(LIB_REQS)
 
 install: $(EXEC) $(LIB)
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp $< $(DESTDIR)$(PREFIX)/bin/$(EXEC)
-	mv $(LIB) stdlib
+	cp $(EXEC) $(PREFIX)/bin/$(EXEC)
+	cp $(LIB) $(LD_LIBRARY_PATH)
+	mkdir -p $(LD_LIBRARY_PATH)/ward
+	cp lib/*.ward $(LD_LIBRARY_PATH)/ward/
+	@printf '====================\n'
+	@printf 'Instalation success.\n'
+	@printf '====================\n'
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(EXEC)
@@ -55,5 +61,5 @@ $(PARSER): lexer.l parser.y
 	bison -d parser.y
 
 clean:
-	rm -f parser.tab.* lex.yy.c *.o ward.a
+	rm -f parser.tab.* lex.yy.c *.o ward.a *.so
 
