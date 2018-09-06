@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "dict.h"
 #include "scope.h"
 #include "object.h"
@@ -59,15 +58,14 @@ w_file *new_file(const char *fname, char omode) {
 			break;
 	}
 	if (!f) {
-		perror(fname);
-		exit(13);
+		return NULL;
 	}
 	wf->openmode = omode;
 	wf->file = f;
 	return wf;
 }
 
-B_Object *int_to_number(size_t intsize, const char intmem) {
+B_Object *int_to_number(int number) {
 	B_Node *root = (B_Node *) new_bnode();
 
 
@@ -75,7 +73,7 @@ B_Object *int_to_number(size_t intsize, const char intmem) {
 
 /* Interface (Ward Functions) */
 
-B_Object *wf_open(stack *args, Scope *S) {
+B_Object *ward_file_open(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "fopen requires 2 arguments: filename, openmode");
 	B_Node *fname = (B_Node *) stack_pop(args);
@@ -97,6 +95,8 @@ B_Object *wf_open(stack *args, Scope *S) {
 	sfname[i] = '\0';
 	/* Create the file object */
 	w_file *wf = new_file(sfname, omode->byte);
+	if (!wf)
+		return new_bnil();
 	/* Create the node */
 	dict *fdict = newdict();
 	dict_update(fdict, ".file", (dict_Data *) wf); /* Set file pointer this way so becomes unreachable
@@ -107,8 +107,8 @@ B_Object *wf_open(stack *args, Scope *S) {
 	return new_bnode(fdict);
 }
 
-B_Object *wf_put(stack *args, Scope *S) {
-	if (args->count < 2)
+B_Object *ward_file_put(stack *args, Scope *S) {
+	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "put requires 2 arguments: filenode, byte");
 	B_Node *fnode = (B_Node *) stack_pop(args);
 	if (fnode->type != B_NODE)
@@ -124,10 +124,10 @@ B_Object *wf_put(stack *args, Scope *S) {
 		return new_bnil();
 }
 
-B_Object *wf_get(stack *args, Scope *S) {
-	if (args->count < 1)
-		raiseError(ARGCOUNT_ERROR, "get requires at least one argument: filenode");
+B_Object *ward_file_get(stack *args, Scope *S) {
 	B_Node *fnode = (B_Node *) stack_pop(args);
+	if (!fnode)
+		raiseError(ARGCOUNT_ERROR, "get requires one argument: filenode");
 	if (fnode->type != B_NODE)
 		raiseError(TYPE_ERROR, "filenode must be a node");
 	w_file *f = (w_file *) Bnode_Get(fnode, ".file");
@@ -138,13 +138,54 @@ B_Object *wf_get(stack *args, Scope *S) {
 		return new_bnil();
 }
 
-B_Object *wf_close(stack *args, Scope *S) {
+B_Object *ward_file_puts(stack *args, Scope *S) {
+	if (args->count != 2)
+		raiseError(ARGCOUNT_ERROR, "puts requires 2 arguments: filenode, string");
+	B_Node *fnode = (B_Node *) stack_pop(args);
+	if (fnode->type != B_NODE)
+		raiseError(TYPE_ERROR, "filenode must be a node");
+	B_Node *string = (B_Node *) stack_pop(args);
+	if (string->type != B_NODE)
+		raiseError(TYPE_ERROR, "string must be a node");
+	w_file *f = (w_file *) Bnode_Get(fnode, ".file");
+	int r = fputc(byte->byte, f->file);
+	if (r != EOF)
+		return new_bbyte((char) r);
+	else
+		return new_bnil();
+}
+
+B_Object *ward_file_get(stack *args, Scope *S) {
+	B_Node *fnode = (B_Node *) stack_pop(args);
+	if (!fnode)
+		raiseError(ARGCOUNT_ERROR, "get requires one argument: filenode");
+	if (fnode->type != B_NODE)
+		raiseError(TYPE_ERROR, "filenode must be a node");
+	w_file *f = (w_file *) Bnode_Get(fnode, ".file");
+	int r = fgetc(f->file);
+	if (r != EOF)
+		return new_bbyte((char) r);
+	else
+		return new_bnil();
+}
+
+B_Object *ward_file_close(stack *args, Scope *S) {
 
 
 
 }
 
 
+/* Module Loader */
+B_Object *module_loader(stack *args, Scope *S) {
+	while (S->upscope)
+		S = S->upscope;
+	Scope_Set(S, ".file-close",	(Scope_Object *) new_cfunction(ward_file_close));
+	// creating the module node
+	dict *d = newdict();
+	dict_update(d, "file", (dict_Data *) new_cfunction(ward_file_open));
+	return new_bnode(d);
+}
 
 
 

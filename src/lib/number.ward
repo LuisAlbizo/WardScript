@@ -88,6 +88,35 @@ end,
 
 gt := func x, y: z:
 	z := recur_gt(reverse(x), reverse(y));
+end,
+
+recur_gte := func x, y: z:
+	? This needs the numbers to be big-endian ?
+	if !x then
+		if !y then
+			z := 1;
+		else
+			z := 0;
+		end
+	else
+		if !y then
+			z := 1;
+		else
+			if x.$byte == y.$byte then
+				z := recur_gte(x.$nextbyte, y.$nextbyte);
+			else
+				if x.$byte >= y.$byte then
+					z := 1;
+				else
+					z := 0;
+				end
+			end
+		end
+	end
+end,
+
+gte := func x, y: z:
+	z := recur_gte(reverse(x), reverse(y));
 end;
 
 ? Arithmetic Algorithms ?
@@ -159,17 +188,38 @@ mul := func x, y: n:
 			exit;
 		else
 			recur_add(n, x, 0);
-			recur_sub(y, number(1), 0);
+			recur_sub(y, #(number(1)), 0);
 		end
 	end
 end,
 
-div := func x, y: x:
-
+divmod := func n, d: qr:
+	q := number(0), r := ncopy(n);
+	qr := {
+		quotient := q,
+		remainder := r
+	};
+	loop
+		if !gte(r, d) then
+			exit;
+		else
+			recur_add(q, #(number(1)), 0);
+			recur_sub(r, d, 0);
+		end
+	end
 end,
 
-mod := func x, y: x:
+div := func { n, d : divmod(n, d).quotient },
 
+mod := func n, d: r:
+	r := ncopy(n);
+	loop
+		if !gte(r, d) then
+			exit;
+		else
+			recur_sub(r, d, 0);
+		end
+	end
 end;
 
 ? Other ?
@@ -193,6 +243,9 @@ $module := {
 	add := add,
 	sub := sub,
 	mul := mul,
+	mod := mod,
+	div := div,
+	divmod := divmod,
 	reverse := reverse,
 	prnum := prnum
 };

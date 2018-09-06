@@ -1,3 +1,4 @@
+![Logo](logo.png)
 # WardScript
 
 WardScript claims to be 2 things:

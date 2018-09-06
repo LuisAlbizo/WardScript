@@ -55,6 +55,12 @@ B_Object *w_present(stack *args, Scope *S) {
 	return new_bnil();
 }
 
+B_Object *w_type(stack *args, Scope *S) {
+	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "type expected one argument");
+	B_Object *arg = (B_Object *) stack_pop(args);
+	return new_bbyte(arg->type);
+}
+
 B_Object *w_print(stack *args, Scope *S) {
 	B_Object *arg = (B_Object *) stack_pop(args);
 	while (arg) {
@@ -79,6 +85,7 @@ B_Object *w_print(stack *args, Scope *S) {
 }
 
 B_Object *w_bool(stack *args, Scope *S) {
+	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "bool expected one argument");
 	return to_bool((B_Object *) stack_pop(args));
 }
 
@@ -98,7 +105,6 @@ B_Object *w_import(stack *args, Scope *S) {
 	// Check in the so libraries
 	char solib[149] = "";
 	sprintf(solib, "libward_%s.so", fname);
-	//sprintf(solib, "%s/libward_%s.so", getenv("LD_LIBRARY_PATH"), fname);
 	void *lib_so = dlopen(solib, RTLD_LAZY);
 	if (lib_so) {
 		B_Object *(*module_loader)(stack *args, Scope *S);
@@ -111,6 +117,19 @@ B_Object *w_import(stack *args, Scope *S) {
 		module = (*module_loader)(args, S);
 		return module;
 	}
+	// Check the standard ward library
+	Scope *MS;
+	st_st *modfunc;
+	sprintf(solib, "%s/lib/ward/%s.ward", getenv("PREFIX"), fname);
+	yyin = fopen(solib, "r");
+	if (yyin) {
+		if (yyparse())
+			exit(33);
+		MS = newScope(S);
+		modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
+		module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
+		return module;
+	}
 	// Check in the current directory
 	yyin = fopen(fname, "r");
 	if (!yyin) {
@@ -120,12 +139,9 @@ B_Object *w_import(stack *args, Scope *S) {
 	if (yyparse())
 		exit(33);
 
-	Scope *MS = newScope(S);
-
-	st_st *modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
-
+	MS = newScope(S);
+	modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
 	module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
-
 	return module;
 }
 
@@ -179,8 +195,14 @@ int main(int argc, char **argv) {
 	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&w_import));
 	Scope_Set(GS, "finish",		(Scope_Object *) new_cfunction(&w_finish));
 	Scope_Set(GS, "bool",		(Scope_Object *) new_cfunction(&w_bool));
+	Scope_Set(GS, "type",		(Scope_Object *) new_cfunction(&w_type));
 	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
 	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));
+	// Types
+	Scope_Set(GS, "NIL",		(Scope_Object *) new_bbyte(B_NIL));
+	Scope_Set(GS, "NODE",		(Scope_Object *) new_bbyte(B_NODE));
+	Scope_Set(GS, "BYTE",		(Scope_Object *) new_bbyte(B_BYTE));
+	Scope_Set(GS, "FUNCTION",	(Scope_Object *) new_bbyte(B_FUNCTION));
 
 	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block, NULL));
 

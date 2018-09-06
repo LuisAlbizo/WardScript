@@ -1,6 +1,9 @@
 n := import("number.ward");
 
-big := n.reverse(n.list_number([5,4,3,2,1]));
-
-n.prnum(big);
+x := n.number(200), y := n.number(20);
+r := n.divmod(x, y);
+n.prnum(x);
+n.prnum(y);
+n.prnum(r.quotient);
+n.prnum(r.remainder);
 
