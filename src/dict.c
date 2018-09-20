@@ -4,6 +4,7 @@
 #include "dict.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* AVL Functions */
 
