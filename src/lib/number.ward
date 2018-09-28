@@ -141,6 +141,13 @@ recur_add := func x, y, count: nil:
 		count := 0;
 	end
 	recur_add(x.$nextbyte, y.$nextbyte, count);
+
+	if x.$nextbyte then
+		? eliminates the last 0's ?
+		if x.$nextbyte.$byte == 0 && x.$nextbyte.$nextbyte == nil then
+			x.$nextbyte := nil;
+		end
+	end
 end,
 
 add := func x, y: n:

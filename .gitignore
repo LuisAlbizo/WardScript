@@ -1,6 +1,7 @@
 *~
 *.so
 ward
-ward.exe
+*.exe
+*.out
 *.o
-
+tests/*.c

@@ -1,3 +1,7 @@
+print("Hola Mundo", 10, 10);
+print("F O O\n");
+print("B A R\n");
+print("B A Z \x40\
+\x509", 10, 64);
 
-print("Hola Mundo", 10);
-
+print("T est\"a \t");

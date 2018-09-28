@@ -4,6 +4,7 @@
 #ifndef obj_h
 #define obj_h
 
+//#include <stdint.h>
 #include "dict.h"
 #include "stack.h"
 #include "scope.h"
@@ -18,6 +19,9 @@
  *
  */
 
+//typedef uint8_t byte_t;
+typedef unsigned char byte_t;
+
 struct B_Node {
 	unsigned int type;
 	dict *members;
@@ -25,7 +29,7 @@ struct B_Node {
 
 struct B_Byte {
 	unsigned int type;
-	char byte;
+	byte_t byte;
 };
 
 struct B_Nil {
@@ -67,7 +71,7 @@ B_Object *new_bnil();
 
 /* Byte */
 
-B_Object *new_bbyte(char);
+B_Object *new_bbyte(byte_t);
 
 /* Function */
 

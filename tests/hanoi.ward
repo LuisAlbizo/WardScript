@@ -1,0 +1,13 @@
+hanoi := func disks, ini, aux, fin: nil:
+	if disks == 1 then
+		present(ini, fin);
+	else
+		hanoi(disks - 1, ini, fin, aux);
+		present(ini, fin);
+		hanoi(disks - 1, aux, ini, fin);
+	end
+end;
+
+
+hanoi(10, 1, 2, 3);
+

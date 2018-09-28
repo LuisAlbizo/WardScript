@@ -1,0 +1,12 @@
+x := input("input:");
+
+cur := x;
+loop
+	if cur /= nil then
+		present(cur.$char);
+		cur := cur.$next;
+	else
+		exit;
+	end
+end
+

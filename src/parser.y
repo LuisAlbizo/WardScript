@@ -9,10 +9,17 @@
 #include "bward.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+FILE *yyin = NULL;
+extern int yylex();
+int lineno = 0;
 
 st_block *program;
 
-extern int yylex();
+void yyerror (char const *s) {
+	fprintf(stderr, "error:- %s\n", s);
+}
 
 %}
 
@@ -68,6 +75,12 @@ statement: SEMICOLON
 	 | IF expression THEN block ELSE block END
 	 {
 	 	$$ = new_if($2, $4, $6);
+	 }
+	 | IF expression THEN block ELSE '-' statement
+	 {
+		st_block *block = (st_block *) new_block(newstack());
+		stack_push(block->block, (stack_Data *) $7);
+		$$ = new_if($2, $4, block);
 	 }
 	 | FOREVER block END
 	 {
@@ -206,5 +219,4 @@ names: { $$ = newstack(); }
      ;
 
 %%
-
 

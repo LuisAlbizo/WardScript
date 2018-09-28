@@ -295,6 +295,7 @@ dict *newdict() {
 		printf("memory insuficient for dict alloc\n");
 		exit(1);
 	}
+	d->root = NULL;
 	return d;
 }
 

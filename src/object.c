@@ -54,7 +54,7 @@ B_Object *new_bnil() {
 
 /* Byte */
 
-B_Object *new_bbyte(char n) {
+B_Object *new_bbyte(byte_t n) {
 	B_Byte *u = malloc(sizeof(B_Byte));
 	if (!u)
 		raiseError(MEMORY_ERROR, "can't create new Object Byte");

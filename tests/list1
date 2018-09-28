@@ -1,0 +1,20 @@
+l := [1, 2, "hola", func { : l}];
+
+el := l.$root;
+
+loop
+	if !el then
+		exit;
+	else
+		present(el.$data);
+		if type(el.$data) == NODE then
+			print("string: ", el.$data, 10);
+		else
+			if type(el.$data) == FUNCTION then
+				present(el.$data());
+			end
+		end
+		el := el.$next;
+	end
+end
+
