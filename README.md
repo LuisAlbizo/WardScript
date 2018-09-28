@@ -12,7 +12,6 @@ especially to implement algorithms and data structures in an understandable way.
 ## Requirements
 
 * make
-* flex
 * bison
 * clang/gcc (or another c compiler)
 
@@ -25,6 +24,16 @@ git clone https://github.com/LuisAlbizo/WardScript
 cd WardScript/src
 make && make install
 make clean
+```
+
+* Windows (with MinGW)
+
+
+``` bash
+git clone https://github.com/LuisAlbizo/WardScript
+cd WardScript\src
+mingw32-make install
+mingw32-make clean
 ```
 
 Once you have installed the interpreter; to execute a wardscript program just run:
