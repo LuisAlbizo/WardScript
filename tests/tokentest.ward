@@ -1,0 +1,18 @@
+
+a := {
+	x := 1, ? un numero ?
+	y := 2, ? otro numero ?
+	cadena := "Hola", ? un pseudo-string ?
+	doble := func { x : x + x } ? una funcion ?
+};
+
+present(
+	a.x, ? presenta x ?
+	a.y ? presenta y ?,
+	a . cadena , ?
+		presenta cadena
+	?
+	a.doble( a . y ) ? llama a doble ?
+);
+
+
