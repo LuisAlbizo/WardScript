@@ -229,6 +229,26 @@ mod := func n, d: r:
 	end
 end;
 
+? Number Pseudo-Class ?
+
+Number := func n: N:
+	if type(n) == BYTE then
+		n := number(n);
+	end
+
+	N := {
+		$number := ncopy(n),
+		$add := func { self, x: recur_add(self.$number, x, 0) },
+		add := func { self, x: add(self.$number, x) },
+		$sub := func { self, x: recur_sub(self.$number, x, 0) },
+		sub := func { self, x: sub(self.$number, x) },
+		mul := func { self, x: mul(self.$number, x) },
+		divmod := func { self, x: divmod(self.$number, x) },
+		div := func { self, x: div(self.$number, x) },
+		mod := func { self, x: mod(self.$number, x) }
+	};
+end;
+
 ? Other ?
 
 prnum := func n: nil:
@@ -245,6 +265,7 @@ end;
 
 $module := {
 	number := number,
+	Number := Number,
 	list_number := list_to_number,
 	ncopy := ncopy,
 	add := add,

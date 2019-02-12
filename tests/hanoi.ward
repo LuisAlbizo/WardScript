@@ -9,5 +9,5 @@ hanoi := func disks, ini, aux, fin: nil:
 end;
 
 
-hanoi(10, 1, 2, 3);
+hanoi(16, 1, 2, 3);
 

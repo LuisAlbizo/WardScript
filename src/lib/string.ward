@@ -1,23 +1,22 @@
-number := import("number.ward");
+number := import("number");
 
 String := func str: str:
 	str := {
 		root := str,
-		len := number.number(0)
+		len := number.Number(0)
 	};
 	root := str.root;
 	loop
 		if root == nil then
 			exit;
 		else
-			str.len := number.add(str.len, number.number(1));
+			str.len:$add(number.number(1));
 			root := root.$next;
 		end
 	end
 end;
 
-s := String("Hola");
-present(s.len);
-
-
+$module := {
+	String := String
+};
 

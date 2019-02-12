@@ -3,12 +3,12 @@ CC = gcc
 CFLAGS = -std=c99 -Wall
 PARSER = parser.tab.c wlexer.o
 OBJECTS = stack.o dict.o object.o evaluator.o scope.o ast.o error.o
-EXEC = ward.exe
+EXEC = ward
 
 LIB = libward_socket.so
 LIB_REQS = object.o error.o stack.o dict.o scope.o
 
-all: $(PARSER) $(OBJECTS) $(EXEC) #$(LIB)
+all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
 	@printf '=================\n'
 	@printf 'Ready to install.\n'
 	@printf '=================\n'
@@ -23,11 +23,11 @@ $(LIB): $(OBJECTS) wardsocket.c
 	$(CC) -fPIC -c wardsocket.c
 	$(CC) -shared -o $(LIB) wardsocket.o $(LIB_REQS)
 
-install: $(EXEC) #$(LIB)
+install: $(EXEC) $(LIB)
 	cp $(EXEC) $(PREFIX)/bin/$(EXEC)
-	#cp $(LIB) $(LD_LIBRARY_PATH)
-	#mkdir -p $(LD_LIBRARY_PATH)/ward
-	#cp lib/*.ward $(LD_LIBRARY_PATH)/ward/
+	cp $(LIB) $(LD_LIBRARY_PATH)
+	mkdir -p $(LD_LIBRARY_PATH)/ward
+	cp lib/*.ward $(LD_LIBRARY_PATH)/ward/
 	@printf '====================\n'
 	@printf 'Instalation success.\n'
 	@printf '====================\n'

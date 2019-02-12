@@ -1,0 +1,26 @@
+socket := import("socket");
+
+serv := socket.socket();
+
+if !serv:bind({
+	port := [144, 31],
+	ipv4 := [127, 0, 0, 1]
+}) then
+	print("Error binding\n");
+	finish(1);
+end
+
+serv:listen(1);
+
+print("Waiting connection...\n");
+conn := serv:accept().conn;
+
+loop
+	data := conn:recv([0, 4]);
+	print("Data received: ", data, 10);
+end
+
+conn:close();
+serv:close();
+print("Connections closed");
+

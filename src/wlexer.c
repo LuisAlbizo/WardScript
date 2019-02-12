@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
+//#include <math.h>
 
 #define valid_name_chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'$\x00"
 #define valid_number_chars "0123456789\x00"
@@ -18,6 +18,13 @@
 extern FILE *yyin;
 extern int lineno;
 extern union YYSTYPE yylval;
+
+int pow(int x, int y) {
+	int r = 1;
+	for (int i = 0; i < y; i++)
+		r = r * x;
+	return r;
+}
 
 int hex_to_dec(const char *hex) {
 	unsigned int dec = 0, p = 0, aux;

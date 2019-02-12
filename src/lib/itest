@@ -1,9 +1,0 @@
-n := import("number.ward");
-
-x := n.number(200), y := n.number(23);
-r := n.divmod(x, y);
-n.prnum(x);
-n.prnum(y);
-n.prnum(r.quotient);
-n.prnum(r.remainder);
-
