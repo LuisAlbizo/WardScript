@@ -25,9 +25,9 @@ $(LIB): $(OBJECTS) wardsocket.c
 
 install: $(EXEC) $(LIB)
 	cp $(EXEC) $(PREFIX)/bin/$(EXEC)
-	cp $(LIB) $(LD_LIBRARY_PATH)
-	mkdir -p $(LD_LIBRARY_PATH)/ward
-	cp lib/*.ward $(LD_LIBRARY_PATH)/ward/
+	cp $(LIB) $(PREFIX)/lib/
+	mkdir -p $(PREFIX)/lib/ward
+	cp lib/*.ward $(PREFIX)/lib/ward/
 	@printf '====================\n'
 	@printf 'Instalation success.\n'
 	@printf '====================\n'

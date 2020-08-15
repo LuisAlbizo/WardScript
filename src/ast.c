@@ -147,7 +147,7 @@ st_st *new_forever(st_block *block) {
 	return (st_st *) forever;
 }
 
-st_st *new_object(B_Object *obj) {
+st_st *new_object(W_Object *obj) {
 	st_object *o = astalloc(sizeof(st_object));
 	o->type = AST_OBJECT;
 	o->obj = obj;

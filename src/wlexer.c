@@ -239,7 +239,7 @@ void wscan_number(FILE *input) {
 	fscanf(input, "%3d", &result);
 	if (result > 255)
 		raiseError(SYNTAX_ERROR, "Number greater than 255");
-	yylval.stat = new_object(new_bbyte(result));
+	yylval.stat = new_object(new_wbyte(result));
 }
 
 int yylex(void) {

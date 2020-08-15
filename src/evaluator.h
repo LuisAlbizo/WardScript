@@ -17,15 +17,15 @@
  *
  */
 
-B_Object *to_bool(B_Object *);
+W_Object *to_bool(W_Object *);
 
 /* NAME */
 st_st *eva_name(st_name *, Scope *);
 /* BOP */
-B_Object *bop_BYTE(byte_t, B_Byte *, B_Object *); /* Binary OP for left-operand of type BYTE */
-B_Object *bop_NODE(byte_t, B_Node *, B_Object *); /* Binary OP for left-operand of type NODE */
-B_Object *bop_NIL(byte_t, B_Nil *, B_Object *); /* Binary OP for left-operand of type NIL */
-B_Object *bop_FUNCTION(byte_t, B_Function *, B_Object *); /* Binary OP for left-operand of type FUNCTION */
+W_Object *bop_BYTE(byte_t, W_Byte *, W_Object *); /* Binary OP for left-operand of type BYTE */
+W_Object *bop_NODE(byte_t, W_Node *, W_Object *); /* Binary OP for left-operand of type NODE */
+W_Object *bop_NIL(byte_t, W_Nil *, W_Object *); /* Binary OP for left-operand of type NIL */
+W_Object *bop_FUNCTION(byte_t, W_Function *, W_Object *); /* Binary OP for left-operand of type FUNCTION */
 
 st_st *eva_bop(st_bop *, Scope *);
 /* UOP */

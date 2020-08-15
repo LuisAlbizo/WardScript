@@ -11,16 +11,16 @@
 
 /* Node Functions */
 
-B_Object *new_bnode(dict *d) {
-	B_Node *n = malloc(sizeof(B_Node));
+W_Object *new_wnode(dict *d) {
+	W_Node *n = malloc(sizeof(W_Node));
 	if (!n)
 		raiseError(MEMORY_ERROR, "can't create new Object Node");
-	n->type = B_NODE;
+	n->type = W_NODE;
 	n->members = d;
-	return (B_Object *) n;
+	return (W_Object *) n;
 }
 
-dict_Data *Bnode_Get(B_Node *n, char *key) {
+dict_Data *Wnode_Get(W_Node *n, char *key) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
 		char errorm[300] = "";
@@ -31,7 +31,7 @@ dict_Data *Bnode_Get(B_Node *n, char *key) {
 	return dn->data;
 }
 
-void Bnode_Set(B_Node *n, char *key, dict_Data *d) {
+void Wnode_Set(W_Node *n, char *key, dict_Data *d) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
 		char errorm[300] = "";
@@ -44,101 +44,102 @@ void Bnode_Set(B_Node *n, char *key, dict_Data *d) {
 
 /* Nil */
 
-B_Object *new_bnil() {
-	B_Nil *n = malloc(sizeof(B_Nil));
+W_Object *new_wnil() {
+	W_Nil *n = malloc(sizeof(W_Nil));
 	if (!n)
 		raiseError(MEMORY_ERROR, "can't create new Object Nil");
-	n->type = B_NIL;
-	return (B_Object *) n;
+	n->type = W_NIL;
+	return (W_Object *) n;
 }
 
 /* Byte */
 
-B_Object *new_bbyte(byte_t n) {
-	B_Byte *u = malloc(sizeof(B_Byte));
+W_Object *new_wbyte(byte_t n) {
+	W_Byte *u = malloc(sizeof(W_Byte));
 	if (!u)
 		raiseError(MEMORY_ERROR, "can't create new Object Byte");
-	u->type = B_BYTE;
+	u->type = W_BYTE;
 	u->byte = n;
-	return (B_Object *) u;
+	return (W_Object *) u;
 }
 
 /* Function */
 
-B_Object *new_bfunction(char *return_name, stack *argnames, stack *code, Scope *state) {
-	B_Function *f = malloc(sizeof(B_Function));
+W_Object *new_wfunction(char *return_name, stack *argnames, stack *code, Scope *state) {
+	W_Function *f = malloc(sizeof(W_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function");
-	f->type = B_FUNCTION;
-	f->ftype = B_FUNCTYPE;
+	f->type = W_FUNCTION;
+	f->ftype = W_FUNCTYPE;
 	strncpy(f->return_name, return_name, MAX_DICT_KEY);
 	f->argnames = argnames;
 	f->code_block = code;
 	f->state = state;
-	return (B_Object *) f;
+	return (W_Object *) f;
 }
 
-B_Object *new_cfunction(B_Object* (*cfunc)(stack *, Scope *)) {
-	B_Function *f = malloc(sizeof(B_Function));
+W_Object *new_cfunction(W_Object* (*cfunc)(stack *, Scope *)) {
+	W_Function *f = malloc(sizeof(W_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object C Function");
-	f->type = B_FUNCTION;
+	f->type = W_FUNCTION;
 	f->ftype = C_FUNCTYPE;
 	f->cfunc = cfunc;
-	return (B_Object *) f;
+	return (W_Object *) f;
 }
 
 /* Pseudo-String */
 
-B_Object *new_char(char chr) {
+W_Object *new_char(char chr) {
 	dict *m = newdict();
-	B_Object *b = new_bbyte(chr);
-	B_Object *n = new_bnil();
+	W_Object *b = new_wbyte(chr);
+	W_Object *n = new_wnil();
 	dict_update(m, "$char", (dict_Data *) b);
 	dict_update(m, "$next", (dict_Data *) n);
-	return new_bnode(m);
+	return new_wnode(m);
 }
 
-B_Object *new_string(const char *str) {
-	B_Node *stroot = (B_Node *) new_char(str[0]);
-	B_Node *tail = stroot;
+W_Object *new_string(const char *str) {
+	W_Node *stroot = (W_Node *) new_char(str[0]);
+	W_Node *tail = stroot;
 	for (int i = 1; str[i] != '\0'; i++) {
-		Bnode_Set(tail, "$next", (dict_Data *) new_char(str[i]));
-		tail = (B_Node *) Bnode_Get(tail, "$next");
+		Wnode_Set(tail, "$next", (dict_Data *) new_char(str[i]));
+		tail = (W_Node *) Wnode_Get(tail, "$next");
 	}
-	return (B_Object *) stroot;
+	return (W_Object *) stroot;
 }
 
 /* Pseudo-List */
 
-B_Object *new_ListItem(B_Object *data) {
+W_Object *new_ListItem(W_Object *data) {
 	dict *m = newdict();
-	B_Object *n = new_bnil();
+	W_Object *n = new_wnil();
 	dict_update(m, "$data", (dict_Data *) data);
 	dict_update(m, "$next", (dict_Data *) n);
-	return new_bnode(m);
+	return new_wnode(m);
 }
 
-B_Object *new_List(stack *objects) {
-	B_Object *item = (B_Object *) stack_pop(objects);
+W_Object *new_List(stack *objects) {
+	W_Object *item = (W_Object *) stack_pop(objects);
 	dict *m = newdict();
-	B_Node *l = (B_Node *) new_bnode(m);
+	W_Node *l = (W_Node *) new_wnode(m);
 	if (!item) {
-		dict_update(m, "$root", (dict_Data *) new_bnil());
-		return (B_Object *) l;
+		dict_update(m, "$root", (dict_Data *) new_wnil());
+		return (W_Object *) l;
 	} else
 		dict_update(m, "$root", (dict_Data *) new_ListItem(item));
-	B_Node *tail = (B_Node *) Bnode_Get(l, "$root");
-	item = (B_Object *) stack_pop(objects);
+	W_Node *tail = (W_Node *) Wnode_Get(l, "$root");
+	item = (W_Object *) stack_pop(objects);
 	while (item) {
-		Bnode_Set(tail, "$next", (dict_Data *) new_ListItem(item));
-		tail = (B_Node *) Bnode_Get(tail, "$next");
-		item = (B_Object *) stack_pop(objects);
+		Wnode_Set(tail, "$next", (dict_Data *) new_ListItem(item));
+		tail = (W_Node *) Wnode_Get(tail, "$next");
+		item = (W_Object *) stack_pop(objects);
 	}
-	return (B_Object *) l;
+	return (W_Object *) l;
 }
 
-void free_obj(B_Object *o) {
+void free_obj(W_Object *o) {
+	// TODO
 	free(o);
 }
 

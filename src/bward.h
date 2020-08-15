@@ -31,78 +31,78 @@ void yyerror(char *s, ...) {
 
 /* Built-in Functions */
 
-B_Object *w_present(stack *args, Scope *S) {
-	B_Object *arg = (B_Object *) stack_pop(args);
+W_Object *w_present(stack *args, Scope *S) {
+	W_Object *arg = (W_Object *) stack_pop(args);
 	while (arg) {
 		switch (arg->type) {
-			case B_BYTE:
-				printf("%d ", (int) ((B_Byte *) arg)->byte);
+			case W_BYTE:
+				printf("%d ", (int) ((W_Byte *) arg)->byte);
 				break;
-			case B_NIL:
+			case W_NIL:
 				printf("<nil> ");
 				break;
-			case B_NODE:
+			case W_NODE:
 				printf("<node at %p> ", arg);
 				break;
-			case B_FUNCTION:
+			case W_FUNCTION:
 				printf("<function at %p> ", arg);
 				break;
 			default:
 				printf("<unknown: %d> ", arg->type);
 				break;
 		}
-		arg = (B_Object *) stack_pop(args);
+		arg = (W_Object *) stack_pop(args);
 	}
 	printf("\n");
-	return new_bnil();
+	return new_wnil();
 }
 
-B_Object *w_type(stack *args, Scope *S) {
+W_Object *w_type(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "type expected one argument");
-	B_Object *arg = (B_Object *) stack_pop(args);
-	return new_bbyte(arg->type);
+	W_Object *arg = (W_Object *) stack_pop(args);
+	return new_wbyte(arg->type);
 }
 
-B_Object *w_print(stack *args, Scope *S) {
-	B_Object *arg = (B_Object *) stack_pop(args);
+W_Object *w_print(stack *args, Scope *S) {
+	W_Object *arg = (W_Object *) stack_pop(args);
 	while (arg) {
 		switch (arg->type) {
-			case B_BYTE:
-				printf("%c", (char) ((B_Byte *) arg)->byte);
+			case W_BYTE:
+				printf("%c", (char) ((W_Byte *) arg)->byte);
 				break;
-			case B_NODE:;
-				B_Node *chr = (B_Node *) arg;
+			case W_NODE:;
+				W_Node *chr = (W_Node *) arg;
 				while (1) {
-					if (chr->type != B_NODE)
+					if (chr->type != W_NODE)
 						break;
-					printf("%c", (char) ((B_Byte *)
-								Bnode_Get(chr, "$char"))->byte);
-					chr = (B_Node *) Bnode_Get(chr, "$next");
+					printf("%c", (char) ((W_Byte *)
+								Wnode_Get(chr, "$char"))->byte);
+					chr = (W_Node *) Wnode_Get(chr, "$next");
 				}
 			default:
 				break;
 		}
-		arg = (B_Object *) stack_pop(args);
+		arg = (W_Object *) stack_pop(args);
 	}
-	return new_bnil();
+	return new_wnil();
 }
 
-B_Object *w_bool(stack *args, Scope *S) {
+W_Object *w_bool(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "bool expected one argument");
-	return to_bool((B_Object *) stack_pop(args));
+	return to_bool((W_Object *) stack_pop(args));
 }
 
-B_Object *w_import(stack *args, Scope *S) {
+W_Object *w_import(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "import expected one argument");
 	char fname[129];
 	int i = 0;
-	B_Node *chr = (B_Node *) stack_pop(args);
-	B_Object *module;
+	W_Node *chr = (W_Node *) stack_pop(args);
+	W_Object *module;
 	while (i <= 128) {
-		if (chr->type != B_NODE)
+		if (chr->type != W_NODE)
 			break;
-		fname[i++] = ((B_Byte *) Bnode_Get(chr, "$char"))->byte;
-		chr = (B_Node *) Bnode_Get(chr, "$next");
+		fname[i++] = ((W_Byte *) Wnode_Get(chr, "$char"))->byte;
+		chr = (W_Node *) Wnode_Get(chr, "$next");
 	}
 	fname[i] = '\0';
 	// Check in the so libraries
@@ -110,7 +110,7 @@ B_Object *w_import(stack *args, Scope *S) {
 	sprintf(solib, "libward_%s.so", fname);
 	void *lib_so = dlopen(solib, RTLD_LAZY);
 	if (lib_so) {
-		B_Object *(*module_loader)(stack *args, Scope *S);
+		W_Object *(*module_loader)(stack *args, Scope *S);
 		module_loader = dlsym(lib_so, "module_loader");
 		char *error_msg = dlerror();
 		if (error_msg) {
@@ -129,7 +129,7 @@ B_Object *w_import(stack *args, Scope *S) {
 		if (yyparse())
 			exit(33);
 		MS = newScope(S);
-		modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
+		modfunc = new_object(new_wfunction("$module", newstack(), program->block, NULL));
 		module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
 		return module;
 	}
@@ -143,14 +143,14 @@ B_Object *w_import(stack *args, Scope *S) {
 		exit(33);
 
 	MS = newScope(S);
-	modfunc = new_object(new_bfunction("$module", newstack(), program->block, NULL));
+	modfunc = new_object(new_wfunction("$module", newstack(), program->block, NULL));
 	module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
 	return module;
 }
 
 #define MAX_INPUT 1024
 
-B_Object *w_input(stack *args, Scope *S) {
+W_Object *w_input(stack *args, Scope *S) {
 	size_t size = MAX_INPUT;
 	char *s = malloc(MAX_INPUT);
 	if (!s) {
@@ -166,10 +166,10 @@ B_Object *w_input(stack *args, Scope *S) {
 	return new_string(s);
 }
 
-B_Object *w_finish(stack *args, Scope *S) {
-	B_Byte *e = (B_Byte *) stack_pop(args);
+W_Object *w_finish(stack *args, Scope *S) {
+	W_Byte *e = (W_Byte *) stack_pop(args);
 	int code;
-	if (!e) e = (B_Byte *) Scope_Get(S, "exit_code");
+	if (!e) e = (W_Byte *) Scope_Get(S, "exit_code");
 	code = e->byte;
 	exit(code);
 	return NULL;
@@ -199,17 +199,17 @@ int main(int argc, char **argv) {
 	Scope_Set(GS, "finish",		(Scope_Object *) new_cfunction(&w_finish));
 	Scope_Set(GS, "bool",		(Scope_Object *) new_cfunction(&w_bool));
 	Scope_Set(GS, "type",		(Scope_Object *) new_cfunction(&w_type));
-	Scope_Set(GS, "nil",		(Scope_Object *) new_bnil());
-	Scope_Set(GS, "exit_code",	(Scope_Object *) new_bbyte(0));
+	Scope_Set(GS, "nil",		(Scope_Object *) new_wnil());
+	Scope_Set(GS, "exit_code",	(Scope_Object *) new_wbyte(0));
 	// Types
-	Scope_Set(GS, "NIL",		(Scope_Object *) new_bbyte(B_NIL));
-	Scope_Set(GS, "NODE",		(Scope_Object *) new_bbyte(B_NODE));
-	Scope_Set(GS, "BYTE",		(Scope_Object *) new_bbyte(B_BYTE));
-	Scope_Set(GS, "FUNCTION",	(Scope_Object *) new_bbyte(B_FUNCTION));
+	Scope_Set(GS, "NIL",		(Scope_Object *) new_wbyte(W_NIL));
+	Scope_Set(GS, "NODE",		(Scope_Object *) new_wbyte(W_NODE));
+	Scope_Set(GS, "BYTE",		(Scope_Object *) new_wbyte(W_BYTE));
+	Scope_Set(GS, "FUNCTION",	(Scope_Object *) new_wbyte(W_FUNCTION));
 
-	st_st *mainfunc = new_object(new_bfunction("exit_code", newstack(), program->block, NULL));
+	st_st *mainfunc = new_object(new_wfunction("exit_code", newstack(), program->block, NULL));
 
-	B_Byte *return_code = (B_Byte *) ((st_object *) eva_(new_call(mainfunc, newstack()), GS))->obj;
+	W_Byte *return_code = (W_Byte *) ((st_object *) eva_(new_call(mainfunc, newstack()), GS))->obj;
 
 	return (int) return_code->byte;
 }

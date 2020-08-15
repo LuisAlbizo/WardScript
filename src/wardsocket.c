@@ -70,17 +70,17 @@
 
 /* Auxiliar functions */
 
-char *ipv4_to_str(B_Node *l) {
+char *ipv4_to_str(W_Node *l) {
 	char *sip = malloc(16);
 	char n[4] = "";
-	l = (B_Node *) Bnode_Get(l, "$root");
-	if (l->type != B_NODE)
+	l = (W_Node *) Wnode_Get(l, "$root");
+	if (l->type != W_NODE)
 		raiseError(TYPE_ERROR, "empty list on ipv4 member");
 	for (char b = 0; b < 4; b++) {
-		sprintf(n, "%d", ((B_Byte *) Bnode_Get(l, "$data"))->byte);
+		sprintf(n, "%d", ((W_Byte *) Wnode_Get(l, "$data"))->byte);
 		strcat(sip, n);
-		l = (B_Node *) Bnode_Get(l, "$next");
-		if (l->type != B_NODE)
+		l = (W_Node *) Wnode_Get(l, "$next");
+		if (l->type != W_NODE)
 			break;
 		else
 			strcat(sip, ".");
@@ -89,24 +89,24 @@ char *ipv4_to_str(B_Node *l) {
 	return sip;
 }
 
-int port_to_short(B_Node *p) {
+int port_to_short(W_Node *p) {
 	int s;
-	p = (B_Node *) Bnode_Get(p, "$root");
-	if (p->type != B_NODE)
+	p = (W_Node *) Wnode_Get(p, "$root");
+	if (p->type != W_NODE)
 		raiseError(TYPE_ERROR, "empty list on port member");
-	s = ((B_Byte *) Bnode_Get(p, "$data"))->byte;
-	p = (B_Node *) Bnode_Get(p, "$next");
-	s = s + (((B_Byte *) Bnode_Get(p, "$data"))->byte * 256);
+	s = ((W_Byte *) Wnode_Get(p, "$data"))->byte;
+	p = (W_Node *) Wnode_Get(p, "$next");
+	s = s + (((W_Byte *) Wnode_Get(p, "$data"))->byte * 256);
 	return s;
 }
 
-B_Object *short_to_port(int s) {
+W_Object *short_to_port(int s) {
 	int b1 = s % 256, b2 = s / 256;
-	B_Node *port = (B_Node *) new_ListItem(new_bbyte(b1));
-	Bnode_Set(port, "$next", (dict_Data *) new_ListItem(new_bbyte(b2)));
-	B_Node *l = (B_Node *) new_List(newstack());
-	Bnode_Set(l, "$root", (dict_Data *) port);
-	return (B_Object *) l;
+	W_Node *port = (W_Node *) new_ListItem(new_wbyte(b1));
+	Wnode_Set(port, "$next", (dict_Data *) new_ListItem(new_wbyte(b2)));
+	W_Node *l = (W_Node *) new_List(newstack());
+	Wnode_Set(l, "$root", (dict_Data *) port);
+	return (W_Object *) l;
 }
 
 /* Socket functions */
@@ -130,7 +130,7 @@ struct w_socket {
 typedef struct w_socket w_socket;
 
 /* SOCKET */
-B_Object *ward_socket(stack *args, Scope *S) {
+W_Object *ward_socket(stack *args, Scope *S) {
 	w_socket *sock = malloc(sizeof(w_socket));
 	if (!sock)
 		raiseError(MEMORY_ERROR, "can't create new socket");
@@ -138,72 +138,72 @@ B_Object *ward_socket(stack *args, Scope *S) {
 	if (sock->fd == -1) {
 		// The socket can not be created
 		free(sock);
-		return new_bnil();
+		return new_wnil();
 	}
 	// Create the ward node
 	dict *d = newdict();
 	dict_update(d, ".socket", (dict_Data *) sock);
 	assign_socket_methods(d, S);
-	return new_bnode(d);
+	return new_wnode(d);
 }
 
 /* BIND */
-B_Object *ward_socket_bind(stack *args, Scope *S) {
+W_Object *ward_socket_bind(stack *args, Scope *S) {
 	char success = 1;
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "bind requires 2 arguments: socket, sock_addr");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
-	B_Node *sock_addr = (B_Node *) stack_pop(args);
-	if (sock_addr->type != B_NODE)
+	W_Node *sock_addr = (W_Node *) stack_pop(args);
+	if (sock_addr->type != W_NODE)
 		raiseError(TYPE_ERROR, "sock_addr must be a node");
 	// Bind
-	B_Node *port = (B_Node *) Bnode_Get(sock_addr, "port");
-	if (port->type != B_NODE)
+	W_Node *port = (W_Node *) Wnode_Get(sock_addr, "port");
+	if (port->type != W_NODE)
 		raiseError(TYPE_ERROR, "port must be a node");
-	B_Node *ipv4 = (B_Node *) Bnode_Get(sock_addr, "ipv4");
-	if (ipv4->type != B_NODE)
+	W_Node *ipv4 = (W_Node *) Wnode_Get(sock_addr, "ipv4");
+	if (ipv4->type != W_NODE)
 		raiseError(TYPE_ERROR, "ipv4 must be a node");
 	// Construct sockaddr_in
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	sock->addr.sin_addr.s_addr = inet_addr(ipv4_to_str(ipv4));
 	sock->addr.sin_family = AF_INET;
 	sock->addr.sin_port = htons(port_to_short(port));
 	// Calling c interface
 	if (bind(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr_in)) < 0)
 		success = 0;
-	return new_bbyte(success);
+	return new_wbyte(success);
 }
 
 /* LISTEN */
-B_Object *ward_socket_listen(stack *args, Scope *S) {
+W_Object *ward_socket_listen(stack *args, Scope *S) {
 	char success = 1;
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "listen requires 2 arguments: socket, backlog");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
-	B_Byte *blog = (B_Byte *) stack_pop(args);
-	if (blog->type != B_BYTE)
+	W_Byte *blog = (W_Byte *) stack_pop(args);
+	if (blog->type != W_BYTE)
 		raiseError(TYPE_ERROR, "backlog must be a node");
 	// get the socket
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	// calling c interface
 	if (listen(sock->fd, blog->byte) < 0)
 		success = 0;
-	return new_bbyte(success);
+	return new_wbyte(success);
 }
 
 /* ACCEPT */
-B_Object *ward_socket_accept(stack *args, Scope *S) {
+W_Object *ward_socket_accept(stack *args, Scope *S) {
 	if (args->count != 1)
 		raiseError(ARGCOUNT_ERROR, "accept requires 2 arguments: socket");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
 	// Create the client socket
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket"),
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket"),
 	*client = malloc(sizeof(w_socket));
 	if (!client)
 		raiseError(MEMORY_ERROR, "can't create new client");
@@ -212,123 +212,123 @@ B_Object *ward_socket_accept(stack *args, Scope *S) {
 	client->fd = accept(sock->fd, (struct sockaddr *) &client->addr, (socklen_t *) &c);
 	if (client->fd < 0) {
 		free(client);
-		return new_bnil();
+		return new_wnil();
 	}
 	// Create conn node
 	dict *cd = newdict();
 	dict_update(cd, ".socket", (dict_Data *) client);
 	assign_socket_methods(cd, S);
-	B_Object *conn = new_bnode(cd);
+	W_Object *conn = new_wnode(cd);
 	// Create addr node
 
 	// Create the ward node
 	dict *wd = newdict();
 	dict_update(wd, "conn", (dict_Data *) conn);
 	//dict_update(wd, "addr", (dict_Data *) addr);
-	return new_bnode(wd);
+	return new_wnode(wd);
 }
 
 /* CONNECT */
-B_Object *ward_socket_connect(stack *args, Scope *S) {
+W_Object *ward_socket_connect(stack *args, Scope *S) {
 	char success = 1;
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "connect requires 2 arguments: socket, sock_addr");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
-	B_Node *sock_addr = (B_Node *) stack_pop(args);
-	if (sock_addr->type != B_NODE)
+	W_Node *sock_addr = (W_Node *) stack_pop(args);
+	if (sock_addr->type != W_NODE)
 		raiseError(TYPE_ERROR, "sock_addr must be a node");
 	// Connect
-	B_Node *port = (B_Node *) Bnode_Get(sock_addr, "port");
-	if (port->type != B_NODE)
+	W_Node *port = (W_Node *) Wnode_Get(sock_addr, "port");
+	if (port->type != W_NODE)
 		raiseError(TYPE_ERROR, "port must be a node");
-	B_Node *ipv4 = (B_Node *) Bnode_Get(sock_addr, "ipv4");
-	if (ipv4->type != B_NODE)
+	W_Node *ipv4 = (W_Node *) Wnode_Get(sock_addr, "ipv4");
+	if (ipv4->type != W_NODE)
 		raiseError(TYPE_ERROR, "ipv4 must be a node");
 	// Construct sockaddr_in
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	sock->addr.sin_addr.s_addr = inet_addr(ipv4_to_str(ipv4));
 	sock->addr.sin_family = AF_INET;
 	sock->addr.sin_port = htons(port_to_short(port));
 	// Calling c interface
 	if (connect(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr_in)) < 0)
 		success = 0;
-	return new_bbyte(success);
+	return new_wbyte(success);
 }
 
 /* SEND */
-B_Object *ward_socket_send(stack *args, Scope *S) {
+W_Object *ward_socket_send(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "send requires 2 arguments: socket, data");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
-	B_Node *data = (B_Node *) stack_pop(args);
-	if (data->type != B_NODE)
+	W_Node *data = (W_Node *) stack_pop(args);
+	if (data->type != W_NODE)
 		raiseError(TYPE_ERROR, "data must be a node");
 	char *data_str = malloc(128);
 	char count = 0;
 	short size = 0;
-	while (data->type == B_NODE) {
+	while (data->type == W_NODE) {
 		count++;
 		if (count == 128) {
 			count = 0;
 			data_str = realloc(data_str, size + 128);
 		}
-		data_str[size] = ((B_Byte *) Bnode_Get(data, "$char"))->byte;
+		data_str[size] = ((W_Byte *) Wnode_Get(data, "$char"))->byte;
 		size++;
-		data = (B_Node *) Bnode_Get(data, "$next");
+		data = (W_Node *) Wnode_Get(data, "$next");
 	}
 	// calling the interface
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	// Calling c interface
 	if (send(sock->fd, data_str, size, 0) < 0) {
 		free(data_str);
-		return new_bnil();
+		return new_wnil();
 	}
 	free(data_str);
 	return short_to_port(size);
 }
 
 /* RECV */
-B_Object *ward_socket_recv(stack *args, Scope *S) {
+W_Object *ward_socket_recv(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "recv requires 2 arguments: socket, size");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
-	B_Node *size = (B_Node *) stack_pop(args);
-	if (size->type != B_NODE)
+	W_Node *size = (W_Node *) stack_pop(args);
+	if (size->type != W_NODE)
 		raiseError(TYPE_ERROR, "size must be a node");
 	int recv_len = port_to_short(size);
 	char *data = malloc(recv_len + 1);
 	// Get socket
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	if (recv(sock->fd, data, recv_len, 0) < 0) {
 		free(data);
-		return new_bnil();
+		return new_wnil();
 	}
-	size = (B_Node *) new_string(data);
+	size = (W_Node *) new_string(data);
 	free(data);
-	return (B_Object *) size;
+	return (W_Object *) size;
 }
 
 /* CLOSE */
-B_Object *ward_socket_close(stack *args, Scope *S) {
+W_Object *ward_socket_close(stack *args, Scope *S) {
 	if (args->count != 1)
 		raiseError(ARGCOUNT_ERROR, "close requires 1 argument: socket");
-	B_Node *sock_node = (B_Node *) stack_pop(args);
-	if (sock_node->type != B_NODE)
+	W_Node *sock_node = (W_Node *) stack_pop(args);
+	if (sock_node->type != W_NODE)
 		raiseError(TYPE_ERROR, "socket must be a node");
 	// Get socket
-	w_socket *sock = (w_socket *) Bnode_Get(sock_node, ".socket");
+	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
 	close(sock->fd);
-	return new_bnil();
+	return new_wnil();
 }
 
 /* Module Loader */
-B_Object *module_loader(stack *args, Scope *S) {
+W_Object *module_loader(stack *args, Scope *S) {
 	while (S->upscope)
 		S = S->upscope;
 	Scope_Set(S, ".socket-bind",	(Scope_Object *) new_cfunction(ward_socket_bind));
@@ -341,6 +341,6 @@ B_Object *module_loader(stack *args, Scope *S) {
 	// creating the module node
 	dict *d = newdict();
 	dict_update(d, "socket", (dict_Data *) new_cfunction(ward_socket));
-	return new_bnode(d);
+	return new_wnode(d);
 }
 

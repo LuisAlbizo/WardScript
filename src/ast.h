@@ -131,7 +131,7 @@ struct forever {
 
 struct object {
 	unsigned int type; // AST_OBJECT
-	B_Object *obj;
+	W_Object *obj;
 };
 
 typedef struct assign		assign;
@@ -176,7 +176,7 @@ st_st *new_methodcall(st_st *, char *, stack *);
 st_st *new_argnames(stack *);
 st_st *new_if(st_st *, st_block *, st_block *);
 st_st *new_forever(st_block *);
-st_st *new_object(B_Object *);
+st_st *new_object(W_Object *);
 
 /* AST Deletion */
 
