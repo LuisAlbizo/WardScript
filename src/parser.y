@@ -6,7 +6,7 @@
 #include "object.h"
 #include "stack.h"
 #include "dict.h"
-#include "bward.h"
+#include "ward.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

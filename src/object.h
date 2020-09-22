@@ -14,11 +14,6 @@
 #define W_NIL 57
 #define W_FUNCTION 58
 
-/* Definition:
- * 	A node is the most simple Abstract Data Type
- *
- */
-
 //typedef uint8_t byte_t;
 typedef unsigned char byte_t;
 
@@ -59,11 +54,12 @@ typedef struct W_F	W_Function;
 /* Node */
 
 W_Object *new_wnode(dict *);
-dict_Data *Wnode_Get(W_Node *, char *); /* Gets a member of the Node */
-void Wnode_Set(W_Node *, char *, dict_Data *); /* Set the value of a Node member, but don't
-						   creates new memebers, can only modify existent
-						   members (Inmutability)
-						   */
+/* Gets a member of the Node */
+dict_Data *Wnode_Get(W_Node *, char *);
+/* Set the value of a Node member, but don't
+ * creates new memebers, can only modify existent
+ * members (Inmutability) */
+void Wnode_Set(W_Node *, char *, dict_Data *);
 
 /* Nil */
 

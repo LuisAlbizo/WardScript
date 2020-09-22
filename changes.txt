@@ -1,0 +1,10 @@
+Added a syntax for single line comments:
+	; single line comment
+
+Fixed some bugs in wardsocket.c
+
+Created ward.vim for syntax highlighting in Vim
+
+Fixed the bug in import function to avoid recursive imports
+
+

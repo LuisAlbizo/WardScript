@@ -109,7 +109,7 @@ struct methodcall {
 	unsigned int type; // AST_METHODCALL
 	struct st *object; // Object to pass as a self parameter (node)
 	char method[MAX_DICT_KEY]; // Member name of object callable
-	stack *args; // stack of statements
+	stack *args; // stack of statements (expressions)
 };
 
 struct argnames {
@@ -155,7 +155,7 @@ typedef struct object		st_object;
 
 /* AST Creation */
 
-void *astalloc(size_t); /* Check if there is disponible memory for allocate a new ast
+void *astalloc(size_t); /* Check if there is memory available for allocate a new ast
 			   if there is memory left then return the block of memory (void *)
 			   otherwise prints an error and finish the program with exit code 1
 			   */

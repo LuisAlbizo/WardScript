@@ -68,6 +68,15 @@
  *		sock:close() -> nil ; closes a socket, free the port the socket was using.
  */
 
+/* Socket Struct */
+
+struct w_socket {
+	int fd; // File Descriptor
+	struct sockaddr_in addr; // Socket Address
+};
+
+typedef struct w_socket w_socket;
+
 /* Auxiliar functions */
 
 char *ipv4_to_str(W_Node *l) {
@@ -113,21 +122,14 @@ W_Object *short_to_port(int s) {
 
 void assign_socket_methods(dict *d, Scope *S) {
 	// Function to assign the socket methods to a node
-	dict_update(d, "bind",		(dict_Data *) Scope_Get(S, ".socket-bind"));
-	dict_update(d, "listen",	(dict_Data *) Scope_Get(S, ".socket-listen"));
-	dict_update(d, "accept",	(dict_Data *) Scope_Get(S, ".socket-accept"));
-	dict_update(d, "connect",	(dict_Data *) Scope_Get(S, ".socket-connect"));
-	dict_update(d, "send",		(dict_Data *) Scope_Get(S, ".socket-send"));
-	dict_update(d, "recv",		(dict_Data *) Scope_Get(S, ".socket-recv"));
-	dict_update(d, "close",		(dict_Data *) Scope_Get(S, ".socket-close"));
+	dict_update(d, "bind",   (dict_Data *) Scope_Get(S, ".socket-bind"));
+	dict_update(d, "listen", (dict_Data *) Scope_Get(S, ".socket-listen"));
+	dict_update(d, "accept", (dict_Data *) Scope_Get(S, ".socket-accept"));
+	dict_update(d, "connect",(dict_Data *) Scope_Get(S, ".socket-connect"));
+	dict_update(d, "send",   (dict_Data *) Scope_Get(S, ".socket-send"));
+	dict_update(d, "recv",   (dict_Data *) Scope_Get(S, ".socket-recv"));
+	dict_update(d, "close",  (dict_Data *) Scope_Get(S, ".socket-close"));
 }
-
-struct w_socket {
-	int fd; // File Descriptor
-	struct sockaddr_in addr; // Socket Address
-};
-
-typedef struct w_socket w_socket;
 
 /* SOCKET */
 W_Object *ward_socket(stack *args, Scope *S) {
@@ -143,6 +145,7 @@ W_Object *ward_socket(stack *args, Scope *S) {
 	// Create the ward node
 	dict *d = newdict();
 	dict_update(d, ".socket", (dict_Data *) sock);
+	dict_update(d, "addr", (dict_Data *) new_wnil());
 	assign_socket_methods(d, S);
 	return new_wnode(d);
 }
@@ -173,6 +176,7 @@ W_Object *ward_socket_bind(stack *args, Scope *S) {
 	// Calling c interface
 	if (bind(sock->fd, (struct sockaddr *) &sock->addr, sizeof(struct sockaddr_in)) < 0)
 		success = 0;
+	Wnode_Set(sock_node, "addr", (dict_Data *) sock_addr);
 	return new_wbyte(success);
 }
 
@@ -301,14 +305,17 @@ W_Object *ward_socket_recv(stack *args, Scope *S) {
 	W_Node *size = (W_Node *) stack_pop(args);
 	if (size->type != W_NODE)
 		raiseError(TYPE_ERROR, "size must be a node");
-	int recv_len = port_to_short(size);
-	char *data = malloc(recv_len + 1);
+	int recv_maxlen = port_to_short(size);
+	int recv_len;
+	char *data = malloc(recv_maxlen + 1);
 	// Get socket
 	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
-	if (recv(sock->fd, data, recv_len, 0) < 0) {
+	recv_len = recv(sock->fd, data, recv_maxlen, 0);
+	if (recv_len < 0) {
 		free(data);
 		return new_wnil();
 	}
+	data[recv_len] = '\0';
 	size = (W_Node *) new_string(data);
 	free(data);
 	return (W_Object *) size;
@@ -323,8 +330,7 @@ W_Object *ward_socket_close(stack *args, Scope *S) {
 		raiseError(TYPE_ERROR, "socket must be a node");
 	// Get socket
 	w_socket *sock = (w_socket *) Wnode_Get(sock_node, ".socket");
-	close(sock->fd);
-	return new_wnil();
+	return new_wbyte(shutdown(sock->fd, 2));
 }
 
 /* Module Loader */

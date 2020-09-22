@@ -174,10 +174,13 @@ int wscan_escape(FILE *input) {
 }
 
 void wscan_string(FILE *input) {
+	//t is the next character
+	//len is the lenght of the string scanned, it is useful for
+	//adding a character (\0) meaning the end of the string
 	int t = fgetc(input);
-	unsigned int len = 0, i = -1, flag = 1;
+	unsigned int len = 0, i = -1;
 	char *str = malloc(129);
-	while (flag) {
+	while (1) {
 		if (i == 128) {
 			i = 0;
 			realloc(str, len + 128);
@@ -195,7 +198,7 @@ void wscan_string(FILE *input) {
 		else if (t == '\n')
 			raiseError(SYNTAX_ERROR, "EOL while scanning a string");
 		else
-			str[len] = t;	
+			str[len] = t;
 		t = fgetc(input);
 		i++; len++;
 	}
@@ -204,7 +207,7 @@ void wscan_string(FILE *input) {
 	free(str);
 }
 
-int wscan_name(FILE *input, char init) {	
+int wscan_name(FILE *input, char init) {
 	char name[MAX_DICT_KEY] = "";
 	int i = 1, t = fgetc(yyin);
 	name[0] = init;
@@ -274,6 +277,10 @@ int yylex(void) {
 			fseek(yyin, -1, SEEK_CUR);
 			return COLON;
 		case ';':
+			do {
+				t = fgetc(yyin);
+			} while (t != '\n');
+			lineno++;
 			return SEMICOLON;
 		// Operators
 		case '<':

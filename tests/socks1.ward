@@ -17,11 +17,11 @@ print("Waiting connection...\n");
 conn := serv:accept().conn;
 
 loop
-	data := conn:recv([0, 4]);
+	data := conn:recv([4, 0]);
 	print("Data received: ", data, 10);
 end
 
 conn:close();
 serv:close();
-print("Connections closed");
+print("Connections closed\n");
 

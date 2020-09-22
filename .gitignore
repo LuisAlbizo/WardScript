@@ -6,5 +6,5 @@ ward
 *.o
 tests/*.c
 parser.tab.*
-
+*.swp
 

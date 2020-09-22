@@ -1,0 +1,4 @@
+m := import("moduleA");
+
+present(m);
+

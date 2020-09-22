@@ -1,0 +1,8 @@
+myli := [1, 2, 3, 4, func { x,y: x+y }];
+
+f := func {x:func{y:x+y}};
+
+add8 := f(8);
+
+present(add8(100));
+

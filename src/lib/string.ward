@@ -17,6 +17,7 @@ String := func str: str:
 end;
 
 $module := {
-	String := String
+	String := String,
+	x := 0
 };
 

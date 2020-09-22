@@ -1,4 +1,4 @@
-? number ?
+? Number pseudo-class and methods ?
 
 error := func message: nil:
 	print("Error: ", message, 10);
@@ -19,11 +19,12 @@ list_to_number := func l: n:
 	end
 
 	cur_l := l.$root,
-	root_n := number(cur_l.$data), 
+	root_n := number(cur_l.$data),
 	cur_n := root_n;
 	loop
 		cur_l := cur_l.$next;
-		if !cur_l then exit; end
+		if !cur_l then exit;
+			end
 		n := number(cur_l.$data);
 		cur_n.$nextbyte := n;
 		cur_n := cur_n.$nextbyte;
@@ -143,7 +144,7 @@ recur_add := func x, y, count: nil:
 	recur_add(x.$nextbyte, y.$nextbyte, count);
 
 	if x.$nextbyte then
-		? eliminates the last 0's ?
+		; eliminates the last 0's
 		if x.$nextbyte.$byte == 0 && x.$nextbyte.$nextbyte == nil then
 			x.$nextbyte := nil;
 		end
@@ -164,6 +165,7 @@ recur_sub := func x, y, count: nil:
 	if !y then
 		exit;
 	end
+
 	if !x then
 		error("substracting y from x where y > x");
 	end
@@ -171,12 +173,13 @@ recur_sub := func x, y, count: nil:
 	if y.$byte > x.$byte then
 		count := 1;
 	end
+
 	x.$byte := x.$byte - y.$byte;
 
 	recur_sub(x.$nextbyte, y.$nextbyte, count);
 
 	if x.$nextbyte then
-		? eliminates the last 0's ?
+		;eliminates the last 0's
 		if x.$nextbyte.$byte == 0 && x.$nextbyte.$nextbyte == nil then
 			x.$nextbyte := nil;
 		end
@@ -234,6 +237,8 @@ end;
 Number := func n: N:
 	if type(n) == BYTE then
 		n := number(n);
+	else
+		error("Number expect a byte.");
 	end
 
 	N := {
@@ -255,7 +260,8 @@ prnum := func n: nil:
 	cur := n;
 	print("Number: ", 10);
 	loop
-		if !cur then exit; end
+		if !cur then exit;
+			end
 		present(cur.$byte);
 		cur := cur.$nextbyte;
 	end

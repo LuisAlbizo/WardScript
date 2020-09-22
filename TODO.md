@@ -8,4 +8,6 @@
 * **GARBAGE COLLECTOR!**
 * Document the code
 * Proper error traceback
+* Parser handwritten
+* REPL
 

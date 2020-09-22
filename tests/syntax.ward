@@ -1,0 +1,29 @@
+; single line comment
+
+?
+	multi
+	line
+	comment
+?
+
+add8 := func x: x:
+	x := x + 8;
+end,
+
+var2 := "Hola Mundo\n";comentario
+
+$str := "\xf0\xf0";
+
+255;
+
+print(var2);
+present(var2);
+print($str);
+
+finish(add8(10));
+
+????
+
+? TODO FIXME BUG XXX INFO NOTES ?
+
+

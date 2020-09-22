@@ -21,7 +21,7 @@ $(LIB): $(OBJECTS) wardsocket.c
 	@printf 'Compiling Libraries...\n'
 	@printf '======================\n'
 	$(CC) -fPIC -c wardsocket.c
-	$(CC) -shared -o $(LIB) wardsocket.o $(LIB_REQS)
+	$(CC) -shared -o libward_socket.so wardsocket.o $(LIB_REQS)
 
 install: $(EXEC) $(LIB)
 	cp $(EXEC) $(PREFIX)/bin/$(EXEC)
@@ -56,10 +56,10 @@ dict: dict.c dict.h
 error: error.c error.h
 	$(CC) -c error.c
 
-$(PARSER): wlexer.c parser.y bward.h
+$(PARSER): wlexer.c parser.y ward.h
 	bison -d parser.y
 	$(CC) -c wlexer.c
 
 clean:
-	rm -f parser.tab.* *.o *.so
+	rm -f parser.tab.* *.o *.so $(EXEC)
 

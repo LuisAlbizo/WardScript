@@ -1,0 +1,6 @@
+
+print("module B imported module A\n");
+import("moduleA");
+
+$module := 4;
+

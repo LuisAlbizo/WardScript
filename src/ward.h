@@ -1,8 +1,8 @@
 /* Default Ward Interpreter configuration file: bward.h
  *
  */
-#ifndef bward_h
-#define bward_h
+#ifndef WARD_H
+#define WARD_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -95,6 +95,7 @@ W_Object *w_bool(stack *args, Scope *S) {
 W_Object *w_import(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "import expected one argument");
 	char fname[129];
+	char pfname[130];
 	int i = 0;
 	W_Node *chr = (W_Node *) stack_pop(args);
 	W_Object *module;
@@ -105,6 +106,13 @@ W_Object *w_import(stack *args, Scope *S) {
 		chr = (W_Node *) Wnode_Get(chr, "$next");
 	}
 	fname[i] = '\0';
+	pfname[0] = '.';
+	memcpy(&pfname[1], fname, 129);
+	// Checks if the private variable exists to avoid recursive imports
+	if(Scope_Get(S, pfname)!=NULL)
+		return (W_Object *) Scope_Get(S, pfname);
+	// Define the private module variable if not exists
+	Scope_Set(S, pfname, (Scope_Object *) new_wnil());
 	// Check in the so libraries
 	char solib[149] = "";
 	sprintf(solib, "libward_%s.so", fname);
@@ -134,9 +142,10 @@ W_Object *w_import(stack *args, Scope *S) {
 		return module;
 	}
 	// Check in the current directory
-	yyin = fopen(fname, "r");
+	sprintf(solib, "%s.ward", fname);
+	yyin = fopen(solib, "r");
 	if (!yyin) {
-		perror(fname);
+		perror(solib);
 		exit(13);
 	}
 	if (yyparse())
@@ -145,6 +154,7 @@ W_Object *w_import(stack *args, Scope *S) {
 	MS = newScope(S);
 	modfunc = new_object(new_wfunction("$module", newstack(), program->block, NULL));
 	module = ((st_object *) eva_(new_call(modfunc, newstack()), MS))->obj;
+	Scope_Set(S, pfname, (Scope_Object *) module);
 	return module;
 }
 
@@ -207,10 +217,10 @@ int main(int argc, char **argv) {
 	Scope_Set(GS, "BYTE",		(Scope_Object *) new_wbyte(W_BYTE));
 	Scope_Set(GS, "FUNCTION",	(Scope_Object *) new_wbyte(W_FUNCTION));
 
-	st_st *mainfunc = new_object(new_wfunction("exit_code", newstack(), program->block, NULL));
-
-	W_Byte *return_code = (W_Byte *) ((st_object *) eva_(new_call(mainfunc, newstack()), GS))->obj;
-
+	st_st *mainfunc = new_object(new_wfunction("exit_code",
+			newstack(), program->block, NULL));
+	W_Byte *return_code = (W_Byte *) ((st_object *) eva_(
+			new_call(mainfunc, newstack()), GS))->obj;
 	return (int) return_code->byte;
 }
 
