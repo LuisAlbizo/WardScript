@@ -1,6 +1,8 @@
-print("Logical", 10);
-present(!0, !1);
-present(22 && 22, 22 && 0, 30 || 0, 0 || 30, 0 || 0);
+i := 255;
 
-present(8, 9, 8 < 9, 8 <= 9);
+loop
+	present(i);
+	i := i - 1;
+end
+
 

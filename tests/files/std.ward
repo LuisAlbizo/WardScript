@@ -1,0 +1,7 @@
+files := import("file");
+
+loop
+	c := files.stdin:get();
+	present(c);
+end
+

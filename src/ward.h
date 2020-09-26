@@ -57,6 +57,29 @@ W_Object *w_present(stack *args, Scope *S) {
 	return new_wnil();
 }
 
+W_Object *w_spresent(stack *args, Scope *S) {
+	W_Object *arg = (W_Object *) stack_pop(args);
+	char s[40];
+	switch (arg->type) {
+		case W_BYTE:
+			sprintf(s, "%d", (int) ((W_Byte *) arg)->byte);
+			break;
+		case W_NIL:
+			sprintf(s, "<nil>");
+			break;
+		case W_NODE:
+			sprintf(s, "<node at %p>", arg);
+			break;
+		case W_FUNCTION:
+			sprintf(s, "<function at %p>", arg);
+			break;
+		default:
+			sprintf(s, "<unknown: %d>", arg->type);
+			break;
+	}
+	return new_string(s);
+}
+
 W_Object *w_type(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "type expected one argument");
 	W_Object *arg = (W_Object *) stack_pop(args);
@@ -158,7 +181,7 @@ W_Object *w_import(stack *args, Scope *S) {
 	return module;
 }
 
-#define MAX_INPUT 1024
+#define MAX_INPUT 255
 
 W_Object *w_input(stack *args, Scope *S) {
 	size_t size = MAX_INPUT;
@@ -201,21 +224,31 @@ int main(int argc, char **argv) {
 		exit(33);
 	}
 	Scope *GS = newScope(NULL);
-
-	Scope_Set(GS, "present",	(Scope_Object *) new_cfunction(&w_present));
-	Scope_Set(GS, "print",		(Scope_Object *) new_cfunction(&w_print));
-	Scope_Set(GS, "input",		(Scope_Object *) new_cfunction(&w_input));
-	Scope_Set(GS, "import",		(Scope_Object *) new_cfunction(&w_import));
-	Scope_Set(GS, "finish",		(Scope_Object *) new_cfunction(&w_finish));
-	Scope_Set(GS, "bool",		(Scope_Object *) new_cfunction(&w_bool));
-	Scope_Set(GS, "type",		(Scope_Object *) new_cfunction(&w_type));
-	Scope_Set(GS, "nil",		(Scope_Object *) new_wnil());
-	Scope_Set(GS, "exit_code",	(Scope_Object *) new_wbyte(0));
+	// Args
+	stack *args = newstack();
+	argc = argc - 2;
+	while (argc) {
+		stack_push(args, (stack_Data *) new_string(argv[argc+1]));
+		argc--;
+	}
+	Scope_Set(GS, "args",    (Scope_Object *) new_List(args));
+	// Built In Functions
+	Scope_Set(GS, "present", (Scope_Object *) new_cfunction(&w_present));
+	Scope_Set(GS, "spresent",(Scope_Object *) new_cfunction(&w_spresent));
+	Scope_Set(GS, "print",   (Scope_Object *) new_cfunction(&w_print));
+	Scope_Set(GS, "input",   (Scope_Object *) new_cfunction(&w_input));
+	Scope_Set(GS, "import",  (Scope_Object *) new_cfunction(&w_import));
+	Scope_Set(GS, "finish",  (Scope_Object *) new_cfunction(&w_finish));
+	Scope_Set(GS, "bool",    (Scope_Object *) new_cfunction(&w_bool));
+	Scope_Set(GS, "type",    (Scope_Object *) new_cfunction(&w_type));
+	// Predefined Variables
+	Scope_Set(GS, "nil",     (Scope_Object *) new_wnil());
+	Scope_Set(GS, "exit_code",(Scope_Object *) new_wbyte(0));
 	// Types
-	Scope_Set(GS, "NIL",		(Scope_Object *) new_wbyte(W_NIL));
-	Scope_Set(GS, "NODE",		(Scope_Object *) new_wbyte(W_NODE));
-	Scope_Set(GS, "BYTE",		(Scope_Object *) new_wbyte(W_BYTE));
-	Scope_Set(GS, "FUNCTION",	(Scope_Object *) new_wbyte(W_FUNCTION));
+	Scope_Set(GS, "NIL",     (Scope_Object *) new_wbyte(W_NIL));
+	Scope_Set(GS, "NODE",    (Scope_Object *) new_wbyte(W_NODE));
+	Scope_Set(GS, "BYTE",    (Scope_Object *) new_wbyte(W_BYTE));
+	Scope_Set(GS, "FUNCTION",(Scope_Object *) new_wbyte(W_FUNCTION));
 
 	st_st *mainfunc = new_object(new_wfunction("exit_code",
 			newstack(), program->block, NULL));

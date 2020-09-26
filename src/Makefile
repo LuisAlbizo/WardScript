@@ -5,7 +5,7 @@ PARSER = parser.tab.c wlexer.o
 OBJECTS = stack.o dict.o object.o evaluator.o scope.o ast.o error.o
 EXEC = ward
 
-LIB = libward_socket.so
+LIB = libward_socket.so libward_file.so
 LIB_REQS = object.o error.o stack.o dict.o scope.o
 
 all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
@@ -16,12 +16,13 @@ all: $(PARSER) $(OBJECTS) $(EXEC) $(LIB)
 $(EXEC): $(OBJECTS) $(PARSER)
 	$(CC) $(PARSER) $(OBJECTS) -o $(EXEC)
 
-$(LIB): $(OBJECTS) wardsocket.c
+$(LIB): $(OBJECTS) wardsocket.c wardfile.c
 	@printf '======================\n'
 	@printf 'Compiling Libraries...\n'
 	@printf '======================\n'
-	$(CC) -fPIC -c wardsocket.c
+	$(CC) -fPIC -c ward*.c
 	$(CC) -shared -o libward_socket.so wardsocket.o $(LIB_REQS)
+	$(CC) -shared -o libward_file.so wardfile.o $(LIB_REQS)
 
 install: $(EXEC) $(LIB)
 	cp $(EXEC) $(PREFIX)/bin/$(EXEC)

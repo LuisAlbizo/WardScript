@@ -14,6 +14,8 @@
 #define W_NIL 57
 #define W_FUNCTION 58
 
+unsigned int _pow(unsigned int, unsigned int);
+
 //typedef uint8_t byte_t;
 typedef unsigned char byte_t;
 
@@ -73,6 +75,11 @@ W_Object *new_wbyte(byte_t);
 
 W_Object *new_wfunction(char *, stack *, stack *, Scope *);
 W_Object *new_cfunction(W_Object* (*)(stack *, Scope *));
+
+/* Integer */
+
+W_Object *new_wnumber(unsigned int );
+unsigned int wnumber_to_int(W_Node *);
 
 /* Pseudo-String */
 

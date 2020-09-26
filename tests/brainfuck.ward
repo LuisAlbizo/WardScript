@@ -1,0 +1,177 @@
+if !args.$root then
+	print("No input file.\n");
+	finish(1);
+end
+
+?*******************
+*   Instructions   *
+*                  *
+*******************?
+PLUS        := 43,
+READ        := 44,
+SUB         := 45,
+WRITE       := 46,
+LT          := 60,
+GT          := 62,
+FORWARD     := 91,
+BACKWARD    := 93;
+
+?*******************
+*     Program      *
+*                  *
+*******************?
+program := {
+	$prev := nil,
+	$next := nil,
+	$comm := LT
+}, command := program;
+
+file := import("file");
+inputf := file.open(args.$root.$data, file.READ);
+char := inputf:get();
+loop
+	if char == nil then
+		exit;
+	else-if char == PLUS     ||
+		char == READ     ||
+		char == SUB      ||
+		char == WRITE    ||
+		char == LT       ||
+		char == GT       ||
+		char == FORWARD  ||
+		char == BACKWARD
+	then
+		command.$next := {
+			$prev := command,
+			$next := nil,
+			$comm := char
+		};
+		command := command.$next;
+	end
+	char := inputf:get();
+end
+
+command := program;
+inputf:close();
+
+?*******************
+*      Memory      *
+*                  *
+*******************?
+memory := {
+	$prev := nil,
+	$next := nil,
+	$byte := 0
+}, pointer := memory;
+
+?*******************
+*    Evaluator     *
+*    Functions     *
+*                  *
+*******************?
+gt := func : nil:
+	if pointer.$next == nil then
+		pointer.$next := {
+			$prev := pointer,
+			$next := nil,
+			$byte := 0
+		};
+	end
+	nonlocal pointer := pointer.$next;
+end;
+
+lt := func : nil:
+	if pointer.$prev == nil then
+		pointer.$prev := {
+			$prev := nil,
+			$next := pointer,
+			$byte := 0
+		};
+	end
+	nonlocal pointer := pointer.$prev;
+end;
+
+plus := func : nil:
+	if pointer.$byte < 255 then
+		pointer.$byte := pointer.$byte + 1;
+	else
+		print("Byte overflow\n");
+	end
+end;
+
+sub := func : nil:
+	if pointer.$byte > 0 then
+		pointer.$byte := pointer.$byte - 1;
+	else
+		print("Byte underflow\n");
+	end
+end;
+
+write := func { : file.stdout:put(pointer.$byte) };
+
+read := func : nil:
+	pointer.$byte := file.stdin:get();
+end;
+
+forward := func : nil:
+	if pointer.$byte then exit;
+	end
+	LOOPS_COUNT := 0;
+	loop
+		nonlocal command := command.$next;
+		if command == nil then
+			print("Forward error\n");
+			finish(1);
+		else-if command.$comm == BACKWARD then
+			if LOOPS_COUNT then
+				LOOPS_COUNT := LOOPS_COUNT - 1;
+			else
+				nonlocal command := command.$prev;
+				exit;
+			end
+		else-if command.$comm == FORWARD then
+			LOOPS_COUNT := LOOPS_COUNT + 1;
+		end
+	end
+end;
+
+backward := func : nil:
+	if !pointer.$byte then exit;
+	end
+	LOOPS_COUNT := 0;
+	loop
+		nonlocal command := command.$prev;
+		if command == nil then
+			print("Backward error\n");
+			finish(1);
+		else-if command.$comm == FORWARD then
+			if LOOPS_COUNT then
+				LOOPS_COUNT := LOOPS_COUNT - 1;
+			else
+				nonlocal command := command.$prev;
+				exit;
+			end
+		else-if command.$comm == BACKWARD then
+			LOOPS_COUNT := LOOPS_COUNT + 1;
+		end
+	end
+end;
+
+?*******************
+*    Evaluator     *
+*                  *
+*******************?
+loop
+	if command == nil                 then finish(0);
+	else-if command.$comm == PLUS     then plus();
+	else-if command.$comm == READ     then read();
+	else-if command.$comm == SUB      then sub();
+	else-if command.$comm == WRITE    then write();
+	else-if command.$comm == LT       then lt();
+	else-if command.$comm == GT       then gt();
+	else-if command.$comm == FORWARD  then forward();
+	else-if command.$comm == BACKWARD then backward();
+	end
+	command := command.$next;
+end
+

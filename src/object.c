@@ -9,6 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+unsigned int _pow(unsigned int x, unsigned int y) {
+	unsigned int r = 1;
+	for (int i = 0; i < y; i++)
+		r = r * x;
+	return r;
+}
+
 /* Node Functions */
 
 W_Object *new_wnode(dict *d) {
@@ -88,15 +95,50 @@ W_Object *new_cfunction(W_Object* (*cfunc)(stack *, Scope *)) {
 	return (W_Object *) f;
 }
 
+/* Integers */
+
+W_Object *new_wnumber(unsigned int n) {
+	// Get the bytes
+	char bytes[4];
+	for (int i = 0; i < 4; i++) {
+		bytes[i] = (char) ((n % _pow(256, i+1)) / _pow(256, i));
+		n = n - (unsigned int) bytes[i];
+	}
+	// Create the nodes
+	W_Node *root = (W_Node *) new_wnode(newdict());
+	W_Node *cur = (W_Node *) root;
+	dict_update(cur->members, "$byte", (dict_Data *) new_wbyte(bytes[3]));
+	dict_update(cur->members, "$nextbyte", (dict_Data *) new_wnil());
+	root = cur, cur = (W_Node *) new_wnode(newdict());
+	dict_update(cur->members, "$byte", (dict_Data *) new_wbyte(bytes[2]));
+	dict_update(cur->members, "$nextbyte", (dict_Data *) root);
+	root = cur, cur = (W_Node *) new_wnode(newdict());
+	dict_update(cur->members, "$byte", (dict_Data *) new_wbyte(bytes[1]));
+	dict_update(cur->members, "$nextbyte", (dict_Data *) root);
+	root = cur, cur = (W_Node *) new_wnode(newdict());
+	dict_update(cur->members, "$byte", (dict_Data *) new_wbyte(bytes[0]));
+	dict_update(cur->members, "$nextbyte", (dict_Data *) root);
+	return (W_Object *) cur;
+}
+
+unsigned int wnumber_to_int(W_Node *root) {
+	unsigned int r = 0;
+	W_Node *cur = root;
+	for (int i = 0; i < 4; i++) {
+		r = r + ((unsigned int) ((W_Byte *)
+			Wnode_Get(cur, "$byte"))->byte * _pow(256, i));
+		cur = (W_Node *) Wnode_Get(cur, "$nextbyte");
+	}
+	return r;
+}
+
 /* Pseudo-String */
 
 W_Object *new_char(char chr) {
-	dict *m = newdict();
-	W_Object *b = new_wbyte(chr);
-	W_Object *n = new_wnil();
-	dict_update(m, "$char", (dict_Data *) b);
-	dict_update(m, "$next", (dict_Data *) n);
-	return new_wnode(m);
+	dict *d = newdict();
+	dict_update(d, "$char", (dict_Data *) new_wbyte(chr));
+	dict_update(d, "$next", (dict_Data *) new_wnil());
+	return new_wnode(d);
 }
 
 W_Object *new_string(const char *str) {

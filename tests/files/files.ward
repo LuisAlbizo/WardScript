@@ -1,0 +1,11 @@
+files := import("file");
+
+f := files.open("lorem.txt", files.APPEND);
+
+r := f:puts("hola");
+
+present(r);
+
+f:close();
+
+

@@ -1,19 +1,112 @@
 number := import("number");
 
-String := func str: str:
-	str := {
-		root := str,
-		len := number.Number(0)
+
+
+; Constructor
+
+String := func str: Str:
+	Str := {
+		$root := str,
+		len := number.Number(0),
+		$tail := nil
 	};
-	root := str.root;
+	root := Str.$root;
 	loop
 		if root == nil then
 			exit;
 		else
-			str.len:$add(number.number(1));
+			Str.len:$add(#(number.number(1)));
+			Str.$tail := root,
 			root := root.$next;
 		end
 	end
+end;
+
+concat := func self, Str: nil:
+	self.$tail.$next := Str.$root,
+	self.$tail := Str.$tail;
+	self.len:$add(Str.len);
+end,
+
+compare := func self, Str: equal:
+	self_cur := self.$root,
+	cur := Str.$root;
+	if self_cur.len == cur.len then
+		equal := 1;
+	else
+		equal := 0;
+		exit;
+	end
+	loop
+		if type(self_cur) == type(cur) then
+			if type(self_cur) == NIL then exit;
+				end
+			if self_cur.$char == cur.$char then
+				self_cur := self_cur.$next,
+				cur := cur.$next;
+			else
+				equal := 0;
+				exit;
+			end
+		else
+			equal := 0;
+			exit;
+		end
+	end
+end,
+
+starts := func self, Str: result:
+	self_cur := self.$root,
+	cur := Str.$root,
+	result := 1;
+	loop
+		if type(cur) == NIL then
+			exit;
+		else
+			if self_cur.$char == cur.$char then
+				self_cur := self_cur.$next,
+				cur := cur.$next;
+			else
+				result := 0;
+				exit;
+			end
+		end
+	end
+end,
+
+ends := func self, Str: result:
+
+
+end,
+
+contains := func self, Str: result:
+
+
+end,
+
+reverse := func self: Str:
+	if self.$root == nil then
+		Str := nil;
+		exit;
+	end
+	tail := {
+		$char := self.$root.$char,
+		$next := nil
+	},
+	cur := self.$root,
+	aux := nil;
+	loop
+		if cur == nil then
+			exit;
+		end
+		aux := tail,
+		tail := {
+			$char := cur.$char,
+			$next := aux
+		},
+		cur := cur.$next;
+	end
+	Str := String(tail);
 end;
 
 $module := {

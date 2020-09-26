@@ -14,10 +14,11 @@
 #define INVALID_BYTE_ERROR	8
 #define LOOP_ERROR		9
 
-void raiseError(int, char *); /*
-		int is the error code, is what the program returns to the console
-		at the exit
-		char * is the error message to show in screen
-		void(*)() is a function callback todo before the program ends */
+void raiseError(int, char *);
+/*
+ * int is the error code, is what the program returns to the console
+ * at the exit
+ * char * is the error message to show in screen
+ */
 
 #endif

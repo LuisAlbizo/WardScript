@@ -5,22 +5,22 @@
 
 autocmd BufRead,BufNewFile *.ward set filetype=ward
 
-syn keyword builtinFunctions print present import finish type input bool
+syn keyword builtinFunctions print present import finish type input bool spresent
 syn keyword controlStats if then else end loop exit
 syn keyword definitions func nonlocal
-syn keyword variables NIL NODE BYTE FUNCTION
+syn keyword variables NIL NODE BYTE FUNCTION nil
 syn keyword notes TODO NOTES XXX BUG FIXME INFO
 syn region comment start="?" end="?" contains=notes
 syn region string start="\"" end="\"" contains=escapechar
 syn match comment ";.\+$"
 syn match byte "[^a-zA-Z0-9_'$]\zs\d\{1,3}\ze"
 syn match byte "^\d\{1,3}"
-syn match byte "\[^\d\{1,3}"
+syn match byte "\[\d\{1,3}"
 syn match invalidbyte "[^a-zA-Z_'$]\+\zs\d\{4,}\ze"
 syn match invalidbyte "^\d\{4,}"
 syn match escapechar "\\[ntv"]"
 syn match escapechar "\\x[0-9a-fA-F]\{2}"
-syn match functions "\zs[a-zA-Z0-9_'$]\+\ze\s*:=\s*func"
+syn match functions "\zs[a-zA-Z0-9_'$]\+\ze\s*:=\s*func\s"
 syn match functions "\zs[a-zA-Z0-9_'$]\+\ze("
 syn match members "[a-zA-Z0-9_'$]\+\zs\(\.[a-zA-Z0-9_'$]\+\)\+\ze"
 syn match brackets "[[\]{}]"

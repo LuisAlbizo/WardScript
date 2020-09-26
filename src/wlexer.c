@@ -19,40 +19,33 @@ extern FILE *yyin;
 extern int lineno;
 extern union YYSTYPE yylval;
 
-int pow(int x, int y) {
-	int r = 1;
-	for (int i = 0; i < y; i++)
-		r = r * x;
-	return r;
-}
-
 int hex_to_dec(const char *hex) {
 	unsigned int dec = 0, p = 0, aux;
 	for (int i = strlen(hex) - 1; i >= 0; i--) {
 		switch (hex[i]) {
 			case 'f':
 			case 'F':
-				dec = dec + (15 * pow(16, p));
+				dec = dec + (15 * _pow(16, p));
 				break;
 			case 'e':
 			case 'E':
-				dec = dec + (14 * pow(16, p));
+				dec = dec + (14 * _pow(16, p));
 				break;
 			case 'd':
 			case 'D':
-				dec = dec + (13 * pow(16, p));
+				dec = dec + (13 * _pow(16, p));
 				break;
 			case 'c':
 			case 'C':
-				dec = dec + (12 * pow(16, p));
+				dec = dec + (12 * _pow(16, p));
 				break;
 			case 'b':
 			case 'B':
-				dec = dec + (11 * pow(16, p));
+				dec = dec + (11 * _pow(16, p));
 				break;
 			case 'a':
 			case 'A':
-				dec = dec + (10 * pow(16, p));
+				dec = dec + (10 * _pow(16, p));
 				break;
 			case '0':
 				break;
@@ -66,7 +59,7 @@ int hex_to_dec(const char *hex) {
 			case '8':
 			case '9':
 				aux = hex[i] - '0';
-				dec = dec + (aux * pow(16, p));
+				dec = dec + (aux * _pow(16, p));
 				break;
 			default:
 				raiseError(SYNTAX_ERROR, "Invalid hex digit on escape");
@@ -183,7 +176,7 @@ void wscan_string(FILE *input) {
 	while (1) {
 		if (i == 128) {
 			i = 0;
-			realloc(str, len + 128);
+			str = realloc(str, len + 128);
 		}
 		if (t == '"') break;
 		else if (t == '\\') {

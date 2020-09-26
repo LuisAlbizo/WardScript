@@ -1,0 +1,11 @@
+arg := args.$root;
+
+loop
+	if !arg then
+		exit;
+	end
+	print(arg.$data, 10);
+	arg := arg.$next;
+end
+
+

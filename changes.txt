@@ -1,10 +1,7 @@
-Added a syntax for single line comments:
-	; single line comment
+added file module
 
-Fixed some bugs in wardsocket.c
+added a function to cast c unsigned integers
+into nodes in wardscript
 
-Created ward.vim for syntax highlighting in Vim
-
-Fixed the bug in import function to avoid recursive imports
-
-
+added function spresent, and variable args
+that contains the arguments passed to the program

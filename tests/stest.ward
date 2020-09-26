@@ -1,6 +1,0 @@
-number := import("number"),
-str := import("string");
-
-s := str.String("Hola");
-number.prnum(s.len.$number);
-

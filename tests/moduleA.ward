@@ -1,6 +1,0 @@
-
-print("module A imported module B\n");
-import("moduleB");
-
-$module := 8;
-

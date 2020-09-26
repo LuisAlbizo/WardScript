@@ -243,20 +243,20 @@ Number := func n: N:
 
 	N := {
 		$number := ncopy(n),
-		$add := func { self, x: recur_add(self.$number, x, 0) },
-		add := func { self, x: add(self.$number, x) },
-		$sub := func { self, x: recur_sub(self.$number, x, 0) },
-		sub := func { self, x: sub(self.$number, x) },
-		mul := func { self, x: mul(self.$number, x) },
-		divmod := func { self, x: divmod(self.$number, x) },
-		div := func { self, x: div(self.$number, x) },
-		mod := func { self, x: mod(self.$number, x) }
+		$add := func { self, x: recur_add(self.$number, x.$number, 0) },
+		add := func { self, x: add(self.$number, x.$number) },
+		$sub := func { self, x: recur_sub(self.$number, x.$number, 0) },
+		sub := func { self, x: sub(self.$number, x.$number) },
+		mul := func { self, x: mul(self.$number, x.$number) },
+		divmod := func { self, x: divmod(self.$number, x.$number) },
+		div := func { self, x: div(self.$number, x.$number) },
+		mod := func { self, x: mod(self.$number, x.$number) }
 	};
 end;
 
 ? Other ?
 
-prnum := func n: nil:
+prenum := func n: nil:
 	cur := n;
 	print("Number: ", 10);
 	loop
