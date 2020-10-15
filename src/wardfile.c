@@ -34,6 +34,7 @@ struct w_file {
 typedef struct w_file w_file;
 
 w_file *new_prefile(FILE *f, int omode) {
+	// Function to create w_file structs for stdin, stdout and stderr
 	w_file *wf = malloc(sizeof(w_file));
 	if (!wf)
 		raiseError(MEMORY_ERROR, "can't create a new file");
@@ -87,8 +88,25 @@ void assign_file_methods(dict *d, Scope *S) {
 	dict_update(d, "close", (dict_Data *) Scope_Get(S, ".file-close"));
 }
 
-/* Open */
-
+/* Open
+ * Function to open new files: open(filename, openmode)
+ * `filename` should be a string and `openmode` a byte.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", file.READ);
+ *
+ * returns a new node in case of no error that contains:
+ *     {
+ *          filename (string)
+ *          openmode (byte)
+ *          get      (method)
+ *          gets     (method)
+ *          put      (method)
+ *          puts     (method)
+ *          close    (method)
+ *     }
+ * in the case an error occurs when trying to open a file then returns nil.
+ */
 W_Object *ward_file_open(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "open requires 2 arguments: filename, openmode");
@@ -123,8 +141,19 @@ W_Object *ward_file_open(stack *args, Scope *S) {
 	return new_wnode(fdict);
 }
 
-/* Put */
-
+/* Put
+ * Method to write one byte to a file on the current position: put(file, byte)
+ * `file` must be a node returned by the open function and `byte` a byte.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", files.APPEND);
+ *     
+ *     f:put(64); 1
+ *     f.put(f, 10); 2
+ * 
+ * both ways 1 and 2 are correct, but 1 is more recommended, returns the byte
+ * writed itself, in case an error occurs then returns nil.
+ */
 W_Object *ward_file_put(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "put requires 2 arguments: file, byte");
@@ -142,8 +171,20 @@ W_Object *ward_file_put(stack *args, Scope *S) {
 		return new_wnil();
 }
 
-/* Puts */
-
+/* Puts
+ * Method to write one or more bytes to a file on the current position:
+ * puts(file, str) 
+ * `file` must be a node returned by open and `str` the string to write.
+ * 
+ *     file := import("file");
+ *     f := file.open("file.txt", file.WRITE);
+ *     
+ *     f:puts("line of text\n\n");
+ *
+ * returns a byte with the number of bytes written or nil if an error occurs.
+ *
+ * NOTE: the max lenght of `str` is 255
+ */
 W_Object *ward_file_puts(stack *args, Scope *S) {
 	if (args->count != 2)
 		raiseError(ARGCOUNT_ERROR, "puts requires 2 arguments: file, string");
@@ -174,8 +215,17 @@ W_Object *ward_file_puts(stack *args, Scope *S) {
 		return new_wnil();
 }
 
-/* Get */
-
+/* Get
+ * Method to read one byte from a file from the current position: get(file)
+ * `file` must be a node returned by the function open.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", file.READ);
+ *     
+ *     f:get();
+ *
+ * returns the byte readed, if an error occurs then returns nil.
+ */
 W_Object *ward_file_get(stack *args, Scope *S) {
 	W_Node *fnode = (W_Node *) stack_pop(args);
 	if (!fnode)
@@ -190,8 +240,19 @@ W_Object *ward_file_get(stack *args, Scope *S) {
 		return new_wnil();
 }
 
-/* Gets */
-
+/* Gets 
+ * Method to read one or nore bytes from a file from the current position:
+ * gets(file, length)
+ * `file` must be a node returned by the function open and `length` a byte.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", file.WRITE);
+ *     
+ *     f:gets(32);
+ *
+ * returns a string of `length` bytes or until id finds a newline character,
+ * if an error occurs then returns nil.
+ */
 W_Object *ward_file_gets(stack *args, Scope *S) {
 	W_Node *fnode = (W_Node *) stack_pop(args);
 	if (!fnode)
@@ -210,8 +271,58 @@ W_Object *ward_file_gets(stack *args, Scope *S) {
 		return new_wnil();
 }
 
-/* Close */
+/* Seek
+ * Method to move to a specific position in a file:
+ * seek(file, pos)
+ * `file` must be a node returnes by open, `pos` is a list with a little endian
+ * unsigned int:
+ * 
+ *     file := import("file");
+ *     f := file.open("file.txt", file.READ_PLUS);
+ *
+ *     ; Set position to 1000 starting from the begining
+ *     f:seek([232,3,0,0], file.SET);
+ *
+ * returns 
+ *
+ */
 
+
+/* Tell
+ * Method to know the current position in a file: tell(file)
+ * `file` must be a node returned by the open function.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", file.READ);
+ *     
+ *     f:tell();
+ *
+ * returns the vyte 0, if an error occurs then returns 1.
+ */
+W_Object *ward_file_tell(stack *args, Scope *S) {
+	W_Node *fnode = (W_Node *) stack_pop(args);
+	if (!fnode)
+		raiseError(ARGCOUNT_ERROR, "get requires one argument: file");
+	if (fnode->type != W_NODE)
+		raiseError(TYPE_ERROR, "file must be a node");
+	w_file *f = (w_file *) Wnode_Get(fnode, ".file");
+	if (fclose(f->file) == EOF)
+		return new_wbyte(1);
+	else
+		return new_wbyte(0);
+}
+
+/* Close
+ * Method to close a file: close(file)
+ * `file` must be a node returned by the open function.
+ *
+ *     file := import("file");
+ *     f := file.open("file.txt", file.READ);
+ *     
+ *     f:close();
+ *
+ * returns the byte 0, if an error occurs then returns 1.
+ */
 W_Object *ward_file_close(stack *args, Scope *S) {
 	W_Node *fnode = (W_Node *) stack_pop(args);
 	if (!fnode)
@@ -225,8 +336,16 @@ W_Object *ward_file_close(stack *args, Scope *S) {
 		return new_wbyte(0);
 }
 
-/* Remove */
-
+/* Remove
+ * Function to delete a file: remove(filename)
+ * `filename` should be a string with the path of the file.
+ *
+ *     file := import("file");
+ *
+ *     file.remove("file.txt");
+ *
+ * returns the byte 0, if an error occurs then returns 1.
+ */
 W_Object *ward_file_remove(stack *args, Scope *S) {
 	W_Node *fname = (W_Node *) stack_pop(args);
 	if (fname->type != W_NODE)

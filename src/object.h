@@ -57,11 +57,11 @@ typedef struct W_F	W_Function;
 
 W_Object *new_wnode(dict *);
 /* Gets a member of the Node */
-dict_Data *Wnode_Get(W_Node *, char *);
+dict_Data *Wnode_Get(W_Node *, const char *);
 /* Set the value of a Node member, but don't
  * creates new memebers, can only modify existent
  * members (Inmutability) */
-void Wnode_Set(W_Node *, char *, dict_Data *);
+void Wnode_Set(W_Node *, const char *, dict_Data *);
 
 /* Nil */
 
@@ -73,12 +73,12 @@ W_Object *new_wbyte(byte_t);
 
 /* Function */
 
-W_Object *new_wfunction(char *, stack *, stack *, Scope *);
+W_Object *new_wfunction(const char *, stack *, stack *, Scope *);
 W_Object *new_cfunction(W_Object* (*)(stack *, Scope *));
 
-/* Integer */
+/* Pseudo-Integer */
 
-W_Object *new_wnumber(unsigned int );
+W_Object *new_wnumber(unsigned int);
 unsigned int wnumber_to_int(W_Node *);
 
 /* Pseudo-String */

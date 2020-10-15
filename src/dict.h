@@ -18,11 +18,11 @@ struct dict_Data {
 };
 
 struct dict_node {
-	char key[MAX_DICT_KEY]; // Search Key of MAX_DICT_KEY maximum lenght
-	struct dict_Data *data; // Data
+	char key[MAX_DICT_KEY];   // Search Key of MAX_DICT_KEY maximum lenght
+	struct dict_Data *data;   // Data
 	struct dict_node *parent; // Pointer to parent node
-	struct dict_node *l; // Left Subtree
-	struct dict_node *r; // Right Subtree
+	struct dict_node *l;      // Left Subtree
+	struct dict_node *r;      // Right Subtree
 };
 
 struct dict {
@@ -36,7 +36,7 @@ typedef struct dict_Data dict_Data;
 /* AVL Functions to insert dict_nodes, remove dict_nodes, rebalance, rotate, etc.
  */
 
-dict_node *newdict_node(char *, dict_Data *, dict_node *, dict_node *, dict_node *);
+dict_node *newdict_node(const char *, dict_Data *, dict_node *, dict_node *, dict_node *);
 unsigned int nchilds(dict_node *);
 int getpos(dict_node *); /* Return the relative position a node has for his parent-node.
 			    return 0 if the node is the left child of his parent-node
@@ -75,9 +75,9 @@ void rebalance(dict_node *);
 /* Dictionary Functions to insert, delete and search a key 
  */
 
-void dict_update(dict *, char *, dict_Data *);
-dict_node *dict_search(dict *, char *);
-void dict_remove(dict *, char *);
+void dict_update(dict *, const char *, dict_Data *);
+dict_node *dict_search(dict *, const char *);
+void dict_remove(dict *, const char *);
 
 /* Create/Delete functions
  */

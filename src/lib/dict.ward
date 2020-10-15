@@ -1,0 +1,5 @@
+; Dict module
+
+Node := func key, val: 
+
+

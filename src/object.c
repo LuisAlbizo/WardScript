@@ -27,23 +27,23 @@ W_Object *new_wnode(dict *d) {
 	return (W_Object *) n;
 }
 
-dict_Data *Wnode_Get(W_Node *n, char *key) {
+dict_Data *Wnode_Get(W_Node *n, const char *key) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
 		char errorm[300] = "";
-		strncpy(errorm, "node has no member called: ", 100);
-		strncat(errorm, key, 200);
+		strncpy(errorm, "node has no member called: ", 45);
+		strncat(errorm, key, 255);
 		raiseError(UNDECLARED_ERROR, errorm);
 	}
 	return dn->data;
 }
 
-void Wnode_Set(W_Node *n, char *key, dict_Data *d) {
+void Wnode_Set(W_Node *n, const char *key, dict_Data *d) {
 	dict_node *dn = dict_search(n->members, key);
 	if (!dn) {
 		char errorm[300] = "";
-		strncpy(errorm, "node has no member called: ",100);
-		strncat(errorm, key, 200);
+		strncpy(errorm, "node has no member called: ", 45);
+		strncat(errorm, key, 255);
 		raiseError(UNDECLARED_ERROR, errorm);
 	}
 	dn->data = d;
@@ -72,7 +72,10 @@ W_Object *new_wbyte(byte_t n) {
 
 /* Function */
 
-W_Object *new_wfunction(char *return_name, stack *argnames, stack *code, Scope *state) {
+W_Object *new_wfunction(const char *return_name,
+		        stack *argnames,
+			stack *code,
+			Scope *state) {
 	W_Function *f = malloc(sizeof(W_Function));
 	if (!f)
 		raiseError(MEMORY_ERROR, "can't create new Object Function");

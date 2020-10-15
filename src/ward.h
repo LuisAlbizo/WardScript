@@ -1,4 +1,4 @@
-/* Default Ward Interpreter configuration file: bward.h
+/* Default Ward Interpreter configuration file: ward.h
  *
  */
 #ifndef WARD_H
@@ -18,19 +18,13 @@ extern int yyparse();
 extern FILE *yyin;
 extern st_block *program;
 
-/*
-void yyerror(char *s, ...) {
-	va_list ap;
-	va_start(ap, s);
+/*********************
+*                    *
+* Built-in Functions *
+*                    *
+*********************/
 
-	fprintf(stderr, "%d: error: ", yylineno);
-	vfprintf(stderr, s, ap);
-	fprintf(stderr, "\n"); 
-}
-*/
-
-/* Built-in Functions */
-
+/* present */
 W_Object *w_present(stack *args, Scope *S) {
 	W_Object *arg = (W_Object *) stack_pop(args);
 	while (arg) {
@@ -57,6 +51,7 @@ W_Object *w_present(stack *args, Scope *S) {
 	return new_wnil();
 }
 
+/* spresent */
 W_Object *w_spresent(stack *args, Scope *S) {
 	W_Object *arg = (W_Object *) stack_pop(args);
 	char s[40];
@@ -80,12 +75,14 @@ W_Object *w_spresent(stack *args, Scope *S) {
 	return new_string(s);
 }
 
+/* type */
 W_Object *w_type(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "type expected one argument");
 	W_Object *arg = (W_Object *) stack_pop(args);
 	return new_wbyte(arg->type);
 }
 
+/* print */
 W_Object *w_print(stack *args, Scope *S) {
 	W_Object *arg = (W_Object *) stack_pop(args);
 	while (arg) {
@@ -99,7 +96,7 @@ W_Object *w_print(stack *args, Scope *S) {
 					if (chr->type != W_NODE)
 						break;
 					printf("%c", (char) ((W_Byte *)
-								Wnode_Get(chr, "$char"))->byte);
+						Wnode_Get(chr, "$char"))->byte);
 					chr = (W_Node *) Wnode_Get(chr, "$next");
 				}
 			default:
@@ -110,11 +107,61 @@ W_Object *w_print(stack *args, Scope *S) {
 	return new_wnil();
 }
 
+/* bool */
 W_Object *w_bool(stack *args, Scope *S) {
-	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "bool expected one argument");
+	if (!(args->count))
+		raiseError(ARGCOUNT_ERROR, "bool expected one argument");
 	return to_bool((W_Object *) stack_pop(args));
 }
 
+/* hasmember */
+W_Object *w_has_member(stack *args, Scope *S) {
+	if (args->count != 2)
+		raiseError(ARGCOUNT_ERROR, "hasmember expected 2 arguments: node, membername");
+	W_Node *n = (W_Node *) stack_pop(args);
+	if (n->type != W_NODE)
+		raiseError(TYPE_ERROR, "node must be a node");
+	W_Node *m = (W_Node *) stack_pop(args);
+	if (n->type != W_NODE)
+		raiseError(TYPE_ERROR, "membername must be a node");
+	char mname[256];
+	int i = 0;
+	while (i <= 255) {
+		if (m->type != W_NODE)
+			break;
+		mname[i++] = ((W_Byte *) Wnode_Get(m, "$char"))->byte;
+		m = (W_Node *) Wnode_Get(m, "$next");
+	}
+	mname[i] = '\0';
+	if (dict_search(n->members, mname) != NULL)
+		return new_wbyte(1);
+	else
+		return new_wbyte(0);
+}
+
+/* getmember */
+W_Object *w_get_member(stack *args, Scope *S) {
+	if (args->count != 2)
+		raiseError(ARGCOUNT_ERROR, "getmember expected 2 arguments: node, membername");
+	W_Node *n = (W_Node *) stack_pop(args);
+	if (n->type != W_NODE)
+		raiseError(TYPE_ERROR, "node must be a node");
+	W_Node *m = (W_Node *) stack_pop(args);
+	if (n->type != W_NODE)
+		raiseError(TYPE_ERROR, "membername must be a node");
+	char mname[256];
+	int i = 0;
+	while (i <= 255) {
+		if (m->type != W_NODE)
+			break;
+		mname[i++] = ((W_Byte *) Wnode_Get(m, "$char"))->byte;
+		m = (W_Node *) Wnode_Get(m, "$next");
+	}
+	mname[i] = '\0';
+	return (W_Object *) Wnode_Get(n, mname);
+}
+
+/* import */
 W_Object *w_import(stack *args, Scope *S) {
 	if (!(args->count)) raiseError(ARGCOUNT_ERROR, "import expected one argument");
 	char fname[129];
@@ -181,8 +228,8 @@ W_Object *w_import(stack *args, Scope *S) {
 	return module;
 }
 
+/* input */
 #define MAX_INPUT 255
-
 W_Object *w_input(stack *args, Scope *S) {
 	size_t size = MAX_INPUT;
 	char *s = malloc(MAX_INPUT);
@@ -191,14 +238,16 @@ W_Object *w_input(stack *args, Scope *S) {
 		exit(1);
 	}
 	w_print(args, S);
-	if (getline(&s, &size, stdin) == -1) {
+	int input_size = getline(&s, &size, stdin);
+	if (input_size == -1) {
 		fprintf(stderr, "Error: No Line\n");
 		exit(1);
 	}
-	s[MAX_DICT_KEY-1] = '\0';
+	s[input_size-1] = '\0';
 	return new_string(s);
 }
 
+/* finish */
 W_Object *w_finish(stack *args, Scope *S) {
 	W_Byte *e = (W_Byte *) stack_pop(args);
 	int code;
@@ -208,11 +257,16 @@ W_Object *w_finish(stack *args, Scope *S) {
 	return NULL;
 }
 
-/* Global Scope */
+/*********************
+*                    *
+*    Program Sets    *
+*                    *
+*********************/
 
 int main(int argc, char **argv) {
+	// Command: ward
 	if (argc < 2) {
-		perror("No input");
+		perror("No input file");
 		exit(1);
 	}
 	yyin = fopen(argv[1], "r");
@@ -223,16 +277,9 @@ int main(int argc, char **argv) {
 	if (yyparse()) {
 		exit(33);
 	}
+	// Global Scope
 	Scope *GS = newScope(NULL);
-	// Args
-	stack *args = newstack();
-	argc = argc - 2;
-	while (argc) {
-		stack_push(args, (stack_Data *) new_string(argv[argc+1]));
-		argc--;
-	}
-	Scope_Set(GS, "args",    (Scope_Object *) new_List(args));
-	// Built In Functions
+	// -Built In Functions
 	Scope_Set(GS, "present", (Scope_Object *) new_cfunction(&w_present));
 	Scope_Set(GS, "spresent",(Scope_Object *) new_cfunction(&w_spresent));
 	Scope_Set(GS, "print",   (Scope_Object *) new_cfunction(&w_print));
@@ -241,10 +288,20 @@ int main(int argc, char **argv) {
 	Scope_Set(GS, "finish",  (Scope_Object *) new_cfunction(&w_finish));
 	Scope_Set(GS, "bool",    (Scope_Object *) new_cfunction(&w_bool));
 	Scope_Set(GS, "type",    (Scope_Object *) new_cfunction(&w_type));
-	// Predefined Variables
-	Scope_Set(GS, "nil",     (Scope_Object *) new_wnil());
+	Scope_Set(GS, "hasmember",(Scope_Object *) new_cfunction(&w_has_member));
+	Scope_Set(GS, "getmember",(Scope_Object *) new_cfunction(&w_get_member));
+	// -Predefined Variables
+	Scope_Set(GS, "nil",      (Scope_Object *) new_wnil());
 	Scope_Set(GS, "exit_code",(Scope_Object *) new_wbyte(0));
-	// Types
+	// --Args
+	stack *args = newstack();
+	argc = argc - 2;
+	while (argc) {
+		stack_push(args, (stack_Data *) new_string(argv[argc+1]));
+		argc--;
+	}
+	Scope_Set(GS, "args",    (Scope_Object *) new_List(args));
+	// --Types
 	Scope_Set(GS, "NIL",     (Scope_Object *) new_wbyte(W_NIL));
 	Scope_Set(GS, "NODE",    (Scope_Object *) new_wbyte(W_NODE));
 	Scope_Set(GS, "BYTE",    (Scope_Object *) new_wbyte(W_BYTE));

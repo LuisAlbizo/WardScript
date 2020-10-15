@@ -1,0 +1,15 @@
+n := {
+	a := 6,
+	b := nil,
+	c := print
+};
+
+m := input("member name (a, b, c): ");
+r := hasmember(n, m);
+
+if r then
+	present(getmember(n, m));
+else
+	print("member doesn't exists\n");
+end
+
