@@ -1,0 +1,14 @@
+files := import("file");
+
+f := files.open("lorem.txt", files.READ);
+
+buff := f:gets(64);
+
+loop
+	if !buff then
+		exit;
+	end
+	print(buff);
+	buff := f:gets(64);
+end
+

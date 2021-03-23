@@ -9,10 +9,10 @@
 #include "stack.h"
 #include "scope.h"
 
-#define W_NODE 55
-#define W_BYTE 56
-#define W_NIL 57
-#define W_FUNCTION 58
+#define W_BYTE     1
+#define W_NODE     2
+#define W_NIL      3
+#define W_FUNCTION 4
 
 unsigned int _pow(unsigned int, unsigned int);
 
@@ -20,17 +20,17 @@ unsigned int _pow(unsigned int, unsigned int);
 typedef unsigned char byte_t;
 
 struct W_Node {
-	unsigned int type;
+	char type;
 	dict *members;
 };
 
 struct W_Byte {
-	unsigned int type;
+	char type;
 	byte_t byte;
 };
 
 struct W_Nil {
-	unsigned int type;
+	char type;
 };
 
 typedef struct W_Node	W_Node;
@@ -42,8 +42,8 @@ typedef struct W_Nil	W_Object;
 #define C_FUNCTYPE 101
 
 struct W_F {
-	unsigned int type;
-	unsigned int ftype;
+	char type;
+	char ftype;
 	char return_name[MAX_DICT_KEY];
 	stack *argnames;
 	stack *code_block;
@@ -51,7 +51,7 @@ struct W_F {
 	W_Object* (*cfunc)(stack *, Scope *);
 };
 
-typedef struct W_F	W_Function;
+typedef struct W_F W_Function;
 
 /* Node */
 

@@ -8,7 +8,7 @@
 
 /* AVL Functions */
 
-dict_node *newdict_node(char *key, dict_Data *d, dict_node *parent, dict_node *l, dict_node *r) {
+dict_node *newdict_node(const char *key, dict_Data *d, dict_node *parent, dict_node *l, dict_node *r) {
 	dict_node *n = malloc(sizeof(dict_node));
 	if (!n) {
 		printf("can't create new dict node\n");
@@ -185,7 +185,7 @@ void rebalance(dict_node *n) {
 
 /* Dict Functions */
 
-void dict_update(dict *d, char *key, dict_Data *v) {
+void dict_update(dict *d, const char *key, dict_Data *v) {
 	/* Update value if key exists else inserts a new key-value on the dict.
 	 */
 	if (!d->root) {
@@ -217,7 +217,7 @@ void dict_update(dict *d, char *key, dict_Data *v) {
 	}
 }
 
-dict_node *dict_search(dict *d, char *key) {
+dict_node *dict_search(dict *d, const char *key) {
 	if (!d->root)
 		return NULL;
 	dict_node *curdict_node = d->root;
@@ -241,7 +241,7 @@ dict_node *dict_search(dict *d, char *key) {
 	return NULL;
 }
 
-void dict_remove(dict *d, char *key) {
+void dict_remove(dict *d, const char *key) {
 	/* This functions search the dict_node by key, and if it found the dict_node
 	 * then remove the dict_node, rebalance the tree and free the memory of the dict_node.
 	 */

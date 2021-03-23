@@ -2,15 +2,15 @@
  * Luis Albizo "08-30-18"
  */
 
-#include "object.h"
-#include "scope.h"
-#include "stack.h"
-#include "error.h"
-#include "dict.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <ward/dict.h>
+#include <ward/scope.h>
+#include <ward/object.h>
+#include <ward/stack.h>
+#include <ward/error.h>
 
 /* Socket module interface:
  *

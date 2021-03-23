@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dict.h"
-#include "scope.h"
-#include "object.h"
-#include "stack.h"
-#include "error.h"
+#include <ward/dict.h>
+#include <ward/scope.h>
+#include <ward/object.h>
+#include <ward/stack.h>
+#include <ward/error.h>
 
 #define MAXBUFFER 255
 
